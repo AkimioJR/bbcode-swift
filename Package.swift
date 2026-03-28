@@ -24,5 +24,9 @@ let package = Package(
       name: "BBCodeParser",
       dependencies: []
     ),
+    .testTarget(
+      name: "BBCodeParserTests",
+      dependencies: ["BBCodeParser"]
+    ),
   ]
 )
