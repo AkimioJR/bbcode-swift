@@ -1,45 +1,37 @@
 import Foundation
 
-public typealias HTMLRender = @Sendable (BBNode, [String: Any]?) -> String
-
-public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
-  .plain: { (n: BBNode, args: [String: Any]?) in
+@Sendable public func defaultHTMLRender(_ n: BBNode, args: [String: String]) -> String {
+  switch n.tag {
+  case .plain:
     return n.escapedValue
-  },
-  .br: { (n: BBNode, args: [String: Any]?) in
+  case .br:
     return "<br>"
-  },
-  .paragraphStart: { (n: BBNode, args: [String: Any]?) in
+  case .paragraphStart:
     return "<p>"
-  },
-  .paragraphEnd: { (n: BBNode, args: [String: Any]?) in
+  case .paragraphEnd:
     return "</p>"
-  },
-  .root: { (n: BBNode, args: [String: Any]?) in
+  case .root:
     return n.renderInnerHTML(args)
-  },
-  .center: { (n: BBNode, args: [String: Any]?) in
+
+  case .center:
     var html: String
     html = "<p style=\"text-align: center;\">"
     html.append(n.renderInnerHTML(args))
     html.append("</p>")
     return html
-  },
-  .left: { (n: BBNode, args: [String: Any]?) in
+  case .left:
     var html: String
     html = "<p style=\"text-align: left;\">"
     html.append(n.renderInnerHTML(args))
     html.append("</p>")
     return html
-  },
-  .right: { (n: BBNode, args: [String: Any]?) in
+  case .right:
     var html: String
     html = "<p style=\"text-align: right;\">"
     html.append(n.renderInnerHTML(args))
     html.append("</p>")
     return html
-  },
-  .align: { (n: BBNode, args: [String: Any]?) in
+  case .align:
     var html: String
     var align = ""
     switch n.escapedAttr.lowercased() {
@@ -59,8 +51,8 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
     html.append(n.renderInnerHTML(args))
     html.append("</p>")
     return html
-  },
-  .list: { (n: BBNode, args: [String: Any]?) in
+
+  case .list:
     var html: String
     if n.attr.isEmpty {
       html = "<ul>"
@@ -74,28 +66,26 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
       html.append("</ol>")
     }
     return html
-  },
-  .listitem: { (n: BBNode, args: [String: Any]?) in
+  case .listitem:
     var html: String = "<li>"
     html.append(n.renderInnerHTML(args))
     html.append("</li>")
     return html
-  },
-  .code: { (n: BBNode, args: [String: Any]?) in
+
+  case .code:
     var html = "<div class=\"code\"><pre><code>"
     html.append(n.renderInnerHTML(args))
     html.append("</code></pre></div>")
     return html
-  },
-  .quote: { (n: BBNode, args: [String: Any]?) in
+  case .quote:
     var html: String
     html = "<div class=\"quote\"><blockquote>"
     html.append(n.renderInnerHTML(args))
     html.append("</blockquote></div>")
     return html
-  },
-  .url: { (n: BBNode, args: [String: Any]?) in
-    let host = args?["host"] as? String
+
+  case .url:
+    let host = args["host"]
     var html: String
     var link: String
     if n.attr.isEmpty {
@@ -126,9 +116,9 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
       }
     }
     return html
-  },
-  .image: { (n: BBNode, args: [String: Any]?) in
-    let host = args?["host"] as? String
+
+  case .image:
+    let host = args["host"]
     var html: String
     let link: String = n.renderInnerHTML(args)
     if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
@@ -151,20 +141,18 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
     } else {
       return link
     }
-  },
-  .bold: { (n: BBNode, args: [String: Any]?) in
+
+  case .bold:
     var html: String = "<strong>"
     html.append(n.renderInnerHTML(args))
     html.append("</strong>")
     return html
-  },
-  .italic: { (n: BBNode, args: [String: Any]?) in
+  case .italic:
     var html: String = "<em>"
     html.append(n.renderInnerHTML(args))
     html.append("</em>")
     return html
-  },
-  .font: { (n: BBNode, args: [String: Any]?) in
+  case .font:
     var html: String
     if n.attr.isEmpty {
       html = n.renderInnerHTML(args)
@@ -172,20 +160,17 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
       html = "<span style=\"font-family: \(n.escapedAttr);\">\(n.renderInnerHTML(args))</span>"
     }
     return html
-  },
-  .underline: { (n: BBNode, args: [String: Any]?) in
+  case .underline:
     var html: String = "<u>"
     html.append(n.renderInnerHTML(args))
     html.append("</u>")
     return html
-  },
-  .strikethrough: { (n: BBNode, args: [String: Any]?) in
+  case .strikethrough:
     var html: String = "<del>"
     html.append(n.renderInnerHTML(args))
     html.append("</del>")
     return html
-  },
-  .color: { (n: BBNode, args: [String: Any]?) in
+  case .color:
     var html: String
     if n.attr.isEmpty {
       html = "<span style=\"color: black;\">\(n.renderInnerHTML(args))</span>"
@@ -222,8 +207,7 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
       }
     }
     return html
-  },
-  .size: { (n: BBNode, args: [String: Any]?) in
+  case .size:
     var html: String
     if n.attr.isEmpty {
       html = "<span style=\"color: black;\">\(n.renderInnerHTML(args))</span>"
@@ -241,14 +225,12 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
       }
     }
     return html
-  },
-  .mask: { (n: BBNode, args: [String: Any]?) in
+  case .mask:
     var html: String = "<span class=\"mask\">"
     html.append(n.renderInnerHTML(args))
     html.append("</span>")
     return html
-  },
-  .ruby: { (n: BBNode, args: [String: Any]?) in
+  case .ruby:
     var html: String
     if n.attr.isEmpty {
       html = n.renderInnerHTML(args)
@@ -257,118 +239,138 @@ public let DefaultHTMLRenders: [BBTag: HTMLRender] = [
         "<ruby>\(n.renderInnerHTML(args))<rp>(</rp><rt>\(n.escapedAttr)</rt><rp>)</rp></ruby>"
     }
     return html
-  },
-]
+  default:
+    if n.children.isEmpty {
+      let startLabel: String
+      if n.attr.isEmpty {
+        startLabel = "[\(n.tag.label)]"
+      } else {
+        startLabel = "[\(n.tag.label)=\(n.attr)]"
+      }
+      return "[\(startLabel)]\(n.value)[/\(n.tag.label)]"
+    } else {
+      var html: String = ""
+      for child in n.children {
+        html.append(child.renderInnerPlain())
+      }
+      return html
+    }
+  }
+
+}
 
 extension BBCode {
-  public func html(
+  public func renderHTML(
     _ bbcode: String,
-    args: [String: Any]? = nil,
-    htmlRenders: [BBTag: HTMLRender] = DefaultHTMLRenders,
     parser: BBParser = DefaultBBParser.content,
-    tm: BBTagManager = BBTagManager()
+    tm: BBTagManager = BBTagManager(),
+    host: String? = nil,
   ) throws(BBCodeError) -> String {
     let domTree = try parser.parse(bbcode, ctx: BBParserContext(tagManager: tm))
     handleNewlineAndParagraph(node: domTree)
-    let render = htmlRenders[domTree.tag]!
-    return render(domTree, args)
+    let args: [String: String]
+    if let host = host {
+      args = ["host": host]
+    } else {
+      args = [:]
+    }
+    return defaultHTMLRender(domTree, args: args)
   }
 }
 
 extension BBNode {
+  /// 只有普通的节点值可以直接在渲染中使用，其他标签需要渲染子节点
+  ///
+  /// Only plain node value is directly usable in render, other tags needs to render subnode.
   var escapedValue: String {
-    // Only plain node value is directly usable in render, other tags needs to render subnode.
-    return value.stringByEncodingHTML
+    return self.value.stringByEncodingHTML
   }
 
   var escapedAttr: String {
-    return attr.stringByEncodingHTML
+    return self.attr.stringByEncodingHTML
   }
 
   func renderInnerHTML(
-    _ args: [String: Any]?,
-    htmlRenders: [BBTag: HTMLRender] = DefaultHTMLRenders,
+    _ args: [String: String]
   ) -> String {
     var html = ""
-    for n in children {
-      if let render = htmlRenders[n.tag] {
-        html.append(render(n, args))
-      }
+    for child in children {
+      html.append(defaultHTMLRender(child, args: args))
     }
     return html
   }
 }
 
-func BBCodeToHTML(code: String, textSize: Int) -> String {
-  guard let body = try? BBCode().html(code, args: ["textSize": textSize]) else {
-    return code
-  }
-  let html = """
-    <!doctype html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name='viewport' content='width=device-width, shrink-to-fit=YES' initial-scale='1.0' maximum-scale='1.0' minimum-scale='1.0' user-scalable='no'>
-        <style type="text/css">
-          :root {
-            color-scheme: light dark;
-          }
-          body {
-            font-size: \(textSize)px;
-            font-family: sans-serif;
-          }
-          li:last-child {
-            margin-bottom: 1em;
-          }
-          a {
-            color: #0084B4;
-            text-decoration: none;
-          }
-          span.mask {
-            background-color: #555;
-            color: #555;
-            border-radius: 2px;
-            box-shadow: #555 0 0 5px;
-            -webkit-transition: all .5s linear;
-          }
-          span.mask:hover {
-            color: #FFF;
-          }
-          pre code {
-            border: 1px solid #EEE;
-            border-radius: 0.5em;
-            padding: 1em;
-            display: block;
-            overflow: auto;
-          }
-          blockquote {
-            display: inline-block;
-            color: #666;
-          }
-          blockquote:before {
-            content: open-quote;
-            display: inline;
-            line-height: 0;
-            position: relative;
-            left: -0.5em;
-            color: #CCC;
-            font-size: 1em;
-          }
-          blockquote:after {
-            content: close-quote;
-            display: inline;
-            line-height: 0;
-            position: relative;
-            left: 0.5em;
-            color: #CCC;
-            font-size: 1em;
-          }
-        </style>
-      </head>
-      <body>
-        \(body)
-      </body>
-      </html>
-    """
-  return html
-}
+// func BBCodeToHTML(code: String, textSize: Int) -> String {
+//   guard let body = try? BBCode().renderHTML(code, args: ["textSize": textSize]) else {
+//     return code
+//   }
+//   let html = """
+//     <!doctype html>
+//       <html>
+//       <head>
+//         <meta charset="utf-8">
+//         <meta name='viewport' content='width=device-width, shrink-to-fit=YES' initial-scale='1.0' maximum-scale='1.0' minimum-scale='1.0' user-scalable='no'>
+//         <style type="text/css">
+//           :root {
+//             color-scheme: light dark;
+//           }
+//           body {
+//             font-size: \(textSize)px;
+//             font-family: sans-serif;
+//           }
+//           li:last-child {
+//             margin-bottom: 1em;
+//           }
+//           a {
+//             color: #0084B4;
+//             text-decoration: none;
+//           }
+//           span.mask {
+//             background-color: #555;
+//             color: #555;
+//             border-radius: 2px;
+//             box-shadow: #555 0 0 5px;
+//             -webkit-transition: all .5s linear;
+//           }
+//           span.mask:hover {
+//             color: #FFF;
+//           }
+//           pre code {
+//             border: 1px solid #EEE;
+//             border-radius: 0.5em;
+//             padding: 1em;
+//             display: block;
+//             overflow: auto;
+//           }
+//           blockquote {
+//             display: inline-block;
+//             color: #666;
+//           }
+//           blockquote:before {
+//             content: open-quote;
+//             display: inline;
+//             line-height: 0;
+//             position: relative;
+//             left: -0.5em;
+//             color: #CCC;
+//             font-size: 1em;
+//           }
+//           blockquote:after {
+//             content: close-quote;
+//             display: inline;
+//             line-height: 0;
+//             position: relative;
+//             left: 0.5em;
+//             color: #CCC;
+//             font-size: 1em;
+//           }
+//         </style>
+//       </head>
+//       <body>
+//         \(body)
+//       </body>
+//       </html>
+//     """
+//   return html
+// }
