@@ -43,69 +43,50 @@ func getFontSizeString(size: Int) -> String {
 }
 
 extension String {
-    /// Returns the String with all special HTML characters encoded.
+    private static let htmlEntities: [Unicode.Scalar: String] = [
+        "\"": "&quot;",
+        "&": "&amp;",
+        "'": "&#39;",
+        "<": "&lt;",
+        ">": "&gt;",
+    ]
+
     var stringByEncodingHTML: String {
-        var ret = ""
-        var g = self.unicodeScalars.makeIterator()
-        while let c = g.next() {
-            if c < UnicodeScalar(0x0009) {
-                if let scale = UnicodeScalar(0x0030 + UInt32(c)) {
-                    ret.append("&#x")
-                    ret.append(String(Character(scale)))
-                    ret.append(";")
-                }
-            } else if c == UnicodeScalar(0x0022) {
-                ret.append("&quot;")
-            } else if c == UnicodeScalar(0x0026) {
-                ret.append("&amp;")
-            } else if c == UnicodeScalar(0x0027) {
-                ret.append("&#39;")
-            } else if c == UnicodeScalar(0x003C) {
-                ret.append("&lt;")
-            } else if c == UnicodeScalar(0x003E) {
-                ret.append("&gt;")
-            } else if c >= UnicodeScalar(0x3000 as UInt16)! && c <= UnicodeScalar(0x303F as UInt16)!
-            {
-                // CJK 标点符号 (3000-303F)
-                ret.append(Character(c))
-            } else if c >= UnicodeScalar(0x3400 as UInt16)! && c <= UnicodeScalar(0x4DBF as UInt16)!
-            {
-                // CJK Unified Ideographs Extension A (3400–4DBF) Rare
-                ret.append(Character(c))
-            } else if c >= UnicodeScalar(0x4E00 as UInt16)! && c <= UnicodeScalar(0x9FFF as UInt16)!
-            {
-                // CJK Unified Ideographs (4E00-9FFF) Common
-                ret.append(Character(c))
-            } else if c >= UnicodeScalar(0xFF00 as UInt16)! && c <= UnicodeScalar(0xFFEF as UInt16)!
-            {
-                // 全角ASCII、全角中英文标点、半宽片假名、半宽平假名、半宽韩文字母 (FF00-FFEF)
-                ret.append(Character(c))
-            } else if c >= UnicodeScalar(0x20000 as UInt32)!
-                && c <= UnicodeScalar(0x2A6DF as UInt32)!
-            {
-                // CJK Unified Ideographs Extension B (20000-2A6DF) Rare, historic
-                ret.append(Character(c))
-            } else if c >= UnicodeScalar(0x2A700 as UInt32)!
-                && c <= UnicodeScalar(0x2B73F as UInt32)!
-            {
-                // CJK Unified Ideographs Extension C (2A700–2B73F) Rare, historic
-                ret.append(Character(c))
-            } else if c >= UnicodeScalar(0x2B740 as UInt32)!
-                && c <= UnicodeScalar(0x2B81F as UInt32)!
-            {
-                // CJK Unified Ideographs Extension D (2B740–2B81F) Uncommon, some in current use
-                ret.append(Character(c))
-            } else if c >= UnicodeScalar(0x2B820 as UInt32)!
-                && c <= UnicodeScalar(0x2CEAF as UInt32)!
-            {
-                // CJK Unified Ideographs Extension E (2B820–2CEAF) Rare, historic
-                ret.append(Character(c))
-            } else if c > UnicodeScalar(0x7E) {
-                ret.append("&#\(UInt32(c));")
-            } else {
-                ret.append(String(Character(c)))
+        var result = ""
+        // 性能优化：预分配容量，减少字符串内存重分配
+        result.reserveCapacity(utf16.count * 2)
+
+        for scalar in unicodeScalars {
+            switch scalar {
+            // 1. 优先处理高频 HTML 实体转义
+            case let s where Self.htmlEntities.keys.contains(s):
+                result.append(Self.htmlEntities[s]!)
+
+            // 2. 处理 0x0000-0x0008 控制字符
+            case "\0"..<"\t":
+                result.append("&#x\(String(UInt32(scalar), radix: 16));")
+
+            // 3. 处理 CJK 及全角字符范围 (直接保留)
+            case "\u{3000}"..."\u{303F}",  // CJK 标点
+                "\u{3400}"..."\u{4DBF}",  // CJK 扩展 A
+                "\u{4E00}"..."\u{9FFF}",  // CJK 统一汉字
+                "\u{FF00}"..."\u{FFEF}",  // 全角字符
+                "\u{20000}"..."\u{2A6DF}",  // CJK 扩展 B
+                "\u{2A700}"..."\u{2B73F}",  // CJK 扩展 C
+                "\u{2B740}"..."\u{2B81F}",  // CJK 扩展 D
+                "\u{2B820}"..."\u{2CEAF}":  // CJK 扩展 E
+                result.append(Character(scalar))
+
+            // 4. 处理 ASCII 0x7E (~) 以上的字符
+            case let s where s > "~":
+                result.append("&#\(UInt32(s));")
+
+            // 5. 普通 ASCII 字符，直接追加
+            default:
+                result.append(Character(scalar))
             }
         }
-        return ret
+
+        return result
     }
 }
