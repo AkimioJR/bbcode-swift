@@ -1,3 +1,2 @@
-public protocol BBParser {
-    func parse(_ bbcode: String, ctx: BBParserContext) throws(BBCodeError) -> BBNode
-}
+public typealias BBParser =
+    @Sendable (_ bbcode: String, _ ctx: BBParserContext) throws(BBCodeError) -> BBNode

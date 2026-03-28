@@ -1,4 +1,4 @@
-extension DefaultBBParser {
+extension DefaultParser {
     func restoreNodeToPlain(node: BBNode, c: UnicodeScalar, ctx: BBParserContext) {
         node.resetPlain()
         node.value.insert(Character(UnicodeScalar("[")), at: node.value.startIndex)

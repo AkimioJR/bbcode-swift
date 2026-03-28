@@ -1,31 +1,30 @@
 import Foundation
 import OSLog
 
-public enum DefaultBBParser: BBParser {
+public func defaultBBParser(
+  _ bbcode: String,
+  _ ctx: BBParserContext,
+) throws(BBCodeError) -> BBNode {
+  var g = bbcode.unicodeScalars.makeIterator()
+  var parser: DefaultParser? = .content
+  while let p = parser {
+    parser = try p.internalParse(&g, ctx)
+  }
+  if ctx.currentNode.tag == .root {
+    return ctx.currentNode
+  } else {
+    throw .internalError("parse faild")
+  }
+}
+
+enum DefaultParser {
   case content
   case tag
   case tagClosing
   case attr
 
-  public func parse(
-    _ bbcode: String,
-    ctx: BBParserContext = BBParserContext(),
-  ) throws(BBCodeError) -> BBNode {
-    var g = bbcode.unicodeScalars.makeIterator()
-    var parser: DefaultBBParser? = .content
-    while let p = parser {
-      parser = try p.internalParse(&g, ctx)
-    }
-    if ctx.currentNode.tag == .root {
-      return ctx.currentNode
-    } else {
-      throw .internalError("parse faild")
-    }
-
-  }
-
   /// 入口解析函数
-  private func internalParse(
+  func internalParse(
     _ g: inout String.UnicodeScalarView.Iterator,
     _ ctx: BBParserContext
   ) throws(BBCodeError) -> Self? {

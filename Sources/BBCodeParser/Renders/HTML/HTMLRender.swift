@@ -262,11 +262,11 @@ import Foundation
 extension BBCode {
   public func renderHTML(
     _ bbcode: String,
-    parser: BBParser = DefaultBBParser.content,
-    tm: BBTagManager = BBTagManager(),
+    using parser: BBParser = defaultBBParser,
+    tagManager: BBTagManager = BBTagManager(),
     host: String? = nil,
   ) throws(BBCodeError) -> String {
-    let domTree = try parser.parse(bbcode, ctx: BBParserContext(tagManager: tm))
+    let domTree = try parser(bbcode, BBParserContext(tagManager: tagManager))
     handleNewlineAndParagraph(node: domTree)
     let args: [String: String]
     if let host = host {
