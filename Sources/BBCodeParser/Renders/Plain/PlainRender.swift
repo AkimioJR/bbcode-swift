@@ -1,10 +1,6 @@
 import Foundation
 
-@Sendable public func DefaultPlainRender<K: Hashable, V>(_ n: BBNode, _: [K: V]) -> String {
-  DefaultPlainRenderImpl(n)
-}
-
-@Sendable public func DefaultPlainRenderImpl(_ n: BBNode) -> String {
+@Sendable public func defaultPlainRender(_ n: BBNode) -> String {
   switch n.tag {
   case .plain:
     return n.escapedValue
@@ -32,27 +28,16 @@ import Foundation
 }
 
 extension BBCode {
-  public func plain<K: Hashable, V>(
+  public func renderPlain(
     _ bbcode: String,
     args: [K: V] = [:],
     render: @escaping BBRender<K, V, String>,
     parser: BBParser = DefaultBBParser.content,
     tm: BBTagManager = BBTagManager()
   ) throws(BBCodeError) -> String {
-    let tree = try parser.parse(bbcode, ctx: BBParserContext(tagManager: tm))
+    let tree = try parser(bbcode, BBParserContext(tagManager: tm))
     handleNewlineAndParagraph(node: tree)
-    return render(tree, args)
-  }
-
-  public func plain(
-    _ bbcode: String,
-    render: @escaping (BBNode) -> String = DefaultPlainRenderImpl,
-    parser: BBParser = DefaultBBParser.content,
-    tm: BBTagManager = BBTagManager()
-  ) throws(BBCodeError) -> String {
-    let tree = try parser.parse(bbcode, ctx: BBParserContext(tagManager: tm))
-    handleNewlineAndParagraph(node: tree)
-    return render(tree)
+    return defaultPlainRender(tree)
   }
 }
 
@@ -60,7 +45,7 @@ extension BBNode {
   func renderInnerPlain() -> String {
     var plain = ""
     for n in children {
-      plain.append(DefaultPlainRenderImpl(n))
+      plain.append(defaultPlainRender(n))
     }
     return plain
   }
