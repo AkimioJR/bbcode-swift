@@ -1,110 +1,55 @@
 import Foundation
 
-public typealias PlainRender = @Sendable (BBNode, [String: Any]?) -> String
+@Sendable public func DefaultPlainRender<K: Hashable, V>(_ n: BBNode, _: [K: V]? = nil) -> String {
+  _defaultPlainRenderImpl(n)
+}
 
-public let DefaultPlainRenders: [BBTag: PlainRender] = [
-  .plain: { (n: BBNode, args: [String: Any]?) in
+@Sendable private func _defaultPlainRenderImpl(_ n: BBNode) -> String {
+  switch n.tag {
+  case .plain:
     return n.escapedValue
-  },
-  .br: { (n: BBNode, args: [String: Any]?) in
+  case .br:
     return "\n"
-  },
-  .paragraphStart: { (n: BBNode, args: [String: Any]?) in
+  case .paragraphStart, .paragraphEnd,
+    .code, .quote, .url, .image:
     return ""
-  },
-  .paragraphEnd: { (n: BBNode, args: [String: Any]?) in
-    return ""
-  },
-  .root: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .center: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .left: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .right: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .align: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .list: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .listitem: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .code: { (n: BBNode, args: [String: Any]?) in
-    return ""
-  },
-  .quote: { (n: BBNode, args: [String: Any]?) in
-    return ""
-  },
-  .url: { (n: BBNode, args: [String: Any]?) in
-    return ""
-  },
-  .image: { (n: BBNode, args: [String: Any]?) in
-    return ""
-  },
-  .bold: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .italic: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .font: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .underline: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .strikethrough: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .color: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .size: { (n: BBNode, args: [String: Any]?) in
-    return n.renderInnerPlain(args)
-  },
-  .mask: { (n: BBNode, args: [String: Any]?) in
-    let plain = n.renderInnerPlain(args)
+  case .root, .center, .left, .right, .align, .list, .listitem,
+    .bold, .italic, .font, .underline, .strikethrough, .color, .size:
+    return n.renderInnerPlain()
+  case .mask:
+    let plain = n.renderInnerPlain()
     return Array(repeating: "■", count: plain.count).joined()
-  },
-  .ruby: { (n: BBNode, args: [String: Any]?) in
-    let base = n.renderInnerPlain(args)
+  case .ruby:
+    let base = n.renderInnerPlain()
     if n.attr.isEmpty {
       return base
     } else {
       return "\(base)(\(n.attr))"
     }
-  },
-]
+  default:
+    return ""
+  }
+}
 
 extension BBCode {
-  public func plain(
+  public func plain<K: Hashable, V>(
     _ bbcode: String,
-    args: [String: Any]? = nil,
-    plainRenders: [BBTag: PlainRender] = DefaultPlainRenders,
+    args: [K: V]? = nil,
+    render: @escaping BBRender<K, V, String> = DefaultPlainRender,
     parser: BBParser = DefaultBBParser.content,
     tm: BBTagManager = BBTagManager()
   ) throws(BBCodeError) -> String {
     let tree = try parser.parse(bbcode, ctx: BBParserContext(tagManager: tm))
     handleNewlineAndParagraph(node: tree)
-    let render = plainRenders[tree.tag]!
     return render(tree, args)
   }
 }
 
 extension BBNode {
-  func renderInnerPlain(_ args: [String: Any]?) -> String {
+  func renderInnerPlain() -> String {
     var plain = ""
     for n in children {
-      if let render = DefaultPlainRenders[n.tag] {
-        plain.append(render(n, args))
-      }
+      plain.append(_defaultPlainRenderImpl(n))
     }
     return plain
   }
