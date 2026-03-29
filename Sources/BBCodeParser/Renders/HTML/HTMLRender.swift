@@ -119,27 +119,27 @@ import Foundation
 
   case .image:
     let host = args["host"]
-    var html: String
-    let link: String = n.renderInnerHTML(args)
-    if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
+    let content = n.renderInnerHTML(args)
+    if let url = safeUrl(url: content, defaultScheme: "https", defaultHost: host) {
+      let html: String
       if n.attr.isEmpty {
         html =
-          "<img src=\"\(safeLink)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" />"
+          "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" />"
       } else {
-        let values = n.attr.components(separatedBy: ",").compactMap { Int($0) }
+        let values = n.attr.components(separatedBy: ",").compactMap { UInt($0) }
         if values.count == 2 && values[0] > 0 && values[0] <= 4096 && values[1] > 0
           && values[1] <= 4096
         {
           html =
-            "<img src=\"\(safeLink)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(values[0])\" height=\"\(values[1])\" />"
+            "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(values[0])\" height=\"\(values[1])\" />"
         } else {
           html =
-            "<img src=\"\(safeLink)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\(n.escapedAttr)\" />"
+            "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\(n.escapedAttr)\" />"
         }
       }
       return html
     } else {
-      return link
+      return content
     }
 
   case .bold:
