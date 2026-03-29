@@ -1,9 +1,12 @@
 public class BBCode {
+
+  public init() {}
+
   public func validate(
     bbcode: String,
-    parser: BBParser = DefaultBBParser.content,
-    tm: BBTagManager = BBTagManager()
+    parser: BBParser = defaultBBParser,
+    tagManager: BBTagManager = BBTagManager()
   ) throws(BBCodeError) {
-    let _ = try parser.parse(bbcode, ctx: BBParserContext(tagManager: tm))
+    let _ = try parser(bbcode, BBParserContext(tagManager: tagManager))
   }
 }
