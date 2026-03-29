@@ -13,8 +13,8 @@ let package = Package(
     .visionOS(.v1),
   ],
   products: [
-    .library(name: "BBCodeParser", targets: ["BBCodeParser"])
-
+    .library(name: "BBCodeParser", targets: ["BBCodeParser"]),
+    .library(name: "BBCodeUI", targets: ["BBCodeUI"]),
   ],
   dependencies: [
 
@@ -27,6 +27,12 @@ let package = Package(
     .testTarget(
       name: "BBCodeParserTests",
       dependencies: ["BBCodeParser"]
+    ),
+    .target(
+      name: "BBCodeUI",
+      dependencies: [
+        "BBCodeParser",
+      ]
     ),
   ]
 )
