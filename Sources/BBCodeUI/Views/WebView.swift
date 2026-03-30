@@ -52,15 +52,15 @@
     }
 
     public func updateUIView(_ uiView: WKWebView, context: Context) {
-      guard context.coordinator.lastCode != code else { return } // 避免相同的 code 重复触发耗时解析
+      guard context.coordinator.lastCode != code else { return }  // 避免相同的 code 重复触发耗时解析
       context.coordinator.lastCode = code
 
-      context.coordinator.parseTask?.cancel() //  取消之前可能还在执行的旧任务
+      context.coordinator.parseTask?.cancel()  //  取消之前可能还在执行的旧任务
 
-      context.coordinator.parseTask = Task { // 开启异步任务
-        let html = await generateHTML(from: code) // 切换到后台线程执行耗时的 BBCode 渲染
+      context.coordinator.parseTask = Task {  // 开启异步任务
+        let html = await generateHTML(from: code)  // 切换到后台线程执行耗时的 BBCode 渲染
         guard !Task.isCancelled else { return }  // 检查任务是否在后台解析期间被取消
-        await MainActor.run { // 切回主线程更新 UI
+        await MainActor.run {  // 切回主线程更新 UI
           uiView.loadHTMLString(html, baseURL: nil)
           uiView.invalidateIntrinsicContentSize()
         }
