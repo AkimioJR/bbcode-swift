@@ -150,7 +150,7 @@ let DefaultBBTagToBBTagDescription: [BBTag: BBTagDescription] = [
     ),
     .size: BBTagDescription(
         tagNeeded: true, isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.url, .mask]).union(BBTag.layout).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .url, .mask]).union(BBTag.layout).union(BBTag.textStyle),
         allowAttr: true,
         isBlock: false
     ),
