@@ -13,6 +13,10 @@ public struct BBCodeWebView: View {
   @State private var htmlContent: String? = nil
   @State private var isConverting: Bool = false
 
+  public init(_ bbcode: String?) {
+    self.bbcode = bbcode
+  }
+
   public var body: some View {
     Group {
       if isConverting {
@@ -190,6 +194,6 @@ func generateHTML(from bbcode: String) async -> String {
     .padding()
 
     // 主体视图
-    BBCodeWebView(bbcode: currentValue)
+    BBCodeWebView(currentValue)
   }
 }
