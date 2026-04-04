@@ -70,6 +70,12 @@ class PlainTests: XCTestCase {
     XCTAssertEqual(plain, "不同大小的文字效果也可实现")
   }
 
+  func testSizeWithNewlineBeforeClosingTag() {
+    let bbcode = "[size=5]2025.1.6 \n全文更新完毕[/size]"
+    let plain = try! BBCode().renderPlain(bbcode)
+    XCTAssertEqual(plain, "2025.1.6 \n全文更新完毕")
+  }
+
   func testLink() {
     let bbcode = "[url=https://www.baidu.com]百度[/url]"
     let plain = try! BBCode().renderPlain(bbcode)

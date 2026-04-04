@@ -69,6 +69,13 @@ class HTMLTests: XCTestCase {
     )
   }
 
+  func testSizeWithNewlineBeforeClosingTag() {
+    XCTAssertEqual(
+      try BBCode().renderHTML("[size=5]2025.1.6 \n全文更新完毕[/size]"),
+      "<span style=\"font-size: x-large;\">2025.1.6 <br>全文更新完毕</span>"
+    )
+  }
+
   func testLink() {
     XCTAssertEqual(
       try BBCode().renderHTML("Bangumi 番组计划: [url]https://chii.in/[/url]"),
