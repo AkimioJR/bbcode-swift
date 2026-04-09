@@ -154,7 +154,7 @@ public enum BBTag: String, Sendable, Hashable {
         case .url:
             return [.image, .br]
         case .bold, .italic, .underline, .strikethrough, .color, .size, .font:
-            return [.br, .url]
+            return [.br, .url, .image]
         case .mask, .ruby:
             return [.br]
         case .plain, .br, .paragraphStart, .paragraphEnd, .code, .image, .unknown:

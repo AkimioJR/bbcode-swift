@@ -97,6 +97,13 @@ class HTMLTests: XCTestCase {
     )
   }
 
+  func testImageInsideTextStyleTag() {
+    XCTAssertEqual(
+      try BBCode().renderHTML("[font=Arial][img]https://chii.in/img/ico/bgm88-31.gif[/img][/font]"),
+      "<span style=\"font-family: Arial;\"><img src=\"https://chii.in/img/ico/bgm88-31.gif\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" /></span>"
+    )
+  }
+
   func testCode() {
     XCTAssertEqual(
       try BBCode().renderHTML("代码片段：[code]print(\"Hello, World!\")[/code]"),

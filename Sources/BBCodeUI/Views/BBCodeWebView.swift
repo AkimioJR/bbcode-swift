@@ -21,10 +21,12 @@ public struct BBCodeWebView: View {
     Group {
       if isConverting {
         ProgressView()
-      } else if let html = htmlContent, bbcode != nil {
-        WebView(html: html)
+        // } else if let html = htmlContent, bbcode != nil {
+        //   WebView(html: html)
       } else {
-        ProgressView()
+        Text("没有内容可显示")
+          .bold()
+          .font(.title3)
       }
     }
     // 当 bbcode 的值发生变化时，触发异步任务
@@ -56,7 +58,13 @@ public struct BBCodeWebView: View {
 func generateHTML(from bbcode: String) async -> String {
   // 使用 Task.detached 彻底脱离主线程 (MainActor) 上下文
   return await Task.detached(priority: .high) {
-    guard let body = try? BBCode().renderHTML(bbcode) else { return "" }
+    let body: String
+    do {
+      body = try BBCode().renderHTML(bbcode)
+    } catch {
+      // 解析失败时返回一个简单的错误提示 HTML
+      body = "<p style='color:red;'>BBCode 解析失败: \(error.localizedDescription)</p>"
+    }
 
     return """
       <!doctype html>

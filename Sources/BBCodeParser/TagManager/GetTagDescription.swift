@@ -113,44 +113,45 @@ let DefaultBBTagToBBTagDescription: [BBTag: BBTagDescription] = [
     .bold: BBTagDescription(
         tagNeeded: true,
         isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br, .url]).union(BBTag.layout).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .url, .image]).union(BBTag.layout).union(BBTag.textStyle),
         allowAttr: false,
         isBlock: false
     ),
     .italic: BBTagDescription(
         tagNeeded: true,
         isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br, .url]).union(BBTag.layout).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .url, .image]).union(BBTag.layout).union(BBTag.textStyle),
         allowAttr: false,
         isBlock: false
     ),
     .font: BBTagDescription(
         tagNeeded: true, isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br]).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .image]).union(BBTag.textStyle),
         allowAttr: true,
         isBlock: false
     ),
     .underline: BBTagDescription(
         tagNeeded: true, isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br, .url]).union(BBTag.layout).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .url, .image]).union(BBTag.layout).union(BBTag.textStyle),
         allowAttr: false,
         isBlock: false
     ),
     .strikethrough: BBTagDescription(
         tagNeeded: true, isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br, .url]).union(BBTag.layout).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .url, .image]).union(BBTag.layout).union(BBTag.textStyle),
         allowAttr: false,
         isBlock: false
     ),
     .color: BBTagDescription(
         tagNeeded: true, isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br, .url]).union(BBTag.layout).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .url, .image]).union(BBTag.layout).union(BBTag.textStyle),
         allowAttr: true,
         isBlock: false
     ),
     .size: BBTagDescription(
         tagNeeded: true, isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br, .url, .mask]).union(BBTag.layout).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .url, .image, .mask]).union(BBTag.layout).union(
+            BBTag.textStyle),
         allowAttr: true,
         isBlock: false
     ),
