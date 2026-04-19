@@ -51,6 +51,14 @@ extension String {
         ">": "&gt;",
     ]
 
+    private static let htmlEntityDecodeMap: [String: String] = [
+        "&quot;": "\"",
+        "&amp;": "&",
+        "&#39;": "'",
+        "&lt;": "<",
+        "&gt;": ">",
+    ]
+
     var stringByEncodingHTML: String {
         var result = ""
         // 性能优化：预分配容量，减少字符串内存重分配
@@ -85,6 +93,27 @@ extension String {
             default:
                 result.append(Character(scalar))
             }
+        }
+
+        return result
+    }
+
+    /// 解码 HTML 实体，将 &gt; 转换为 >，&lt; 转换为 <，等等
+    var stringByDecodingHTML: String {
+        var result = self
+
+        // 按照特定顺序替换，确保不会重复处理
+        // 注意：&amp; 必须最后处理，以避免影响其他实体的处理
+        let entitiesToDecode: [(key: String, value: String)] = [
+            ("&quot;", "\""),
+            ("&#39;", "'"),
+            ("&lt;", "<"),
+            ("&gt;", ">"),
+            ("&amp;", "&"),  // 必须最后处理
+        ]
+
+        for (entity, character) in entitiesToDecode {
+            result = result.replacingOccurrences(of: entity, with: character)
         }
 
         return result
