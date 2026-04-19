@@ -126,7 +126,7 @@ let DefaultBBTagToBBTagDescription: [BBTag: BBTagDescription] = [
     ),
     .font: BBTagDescription(
         tagNeeded: true, isSelfClosing: false,
-        allowedChildren: Set<BBTag>([.br, .image]).union(BBTag.textStyle),
+        allowedChildren: Set<BBTag>([.br, .image, .url]).union(BBTag.textStyle),
         allowAttr: true,
         isBlock: false
     ),
