@@ -164,4 +164,76 @@ class HTMLTests: XCTestCase {
       "使用字体：<span style=\"font-family: Arial;\">这是Arial<span style=\"font-family: 宋体;\">字体</span></span>"
     )
   }
+
+  func testGreaterThanSymbol() {
+    // 测试 > 符号应该被正确编码成 &gt;，而不是 &amp;gt;
+    XCTAssertEqual(
+      try BBCode().renderHTML("【内容简介】>>>>>"),
+      "【内容简介】&gt;&gt;&gt;&gt;&gt;"
+    )
+  }
+
+  func testLessThanSymbol() {
+    // 测试 < 符号应该被正确编码成 &lt;，而不是 &amp;lt;
+    XCTAssertEqual(
+      try BBCode().renderHTML("数字 1 < 2"),
+      "数字 1 &lt; 2"
+    )
+  }
+
+  func testAmpersandSymbol() {
+    // 测试 & 符号应该被正确编码成 &amp;
+    XCTAssertEqual(
+      try BBCode().renderHTML("A & B"),
+      "A &amp; B"
+    )
+  }
+
+  func testGreaterThanInTag() {
+    // 测试 BBCode 标签内的 > 符号
+    XCTAssertEqual(
+      try BBCode().renderHTML("这是[b]粗体>>>>>[/b]文字"),
+      "这是<strong>粗体&gt;&gt;&gt;&gt;&gt;</strong>文字"
+    )
+  }
+
+  func testAlreadyEncodedGreaterThan() {
+    // 测试输入中已经转义的 HTML 实体 - 应该被正确处理而不是二次编码
+    XCTAssertEqual(
+      try BBCode().renderHTML("&gt;&gt;&gt;&gt;&gt;【内容简介】&lt;&lt;&lt;&lt;&lt;"),
+      "&gt;&gt;&gt;&gt;&gt;【内容简介】&lt;&lt;&lt;&lt;&lt;"
+    )
+  }
+
+  func testAlreadyEncodedHTMLInTag() {
+    // 测试 BBCode 标签内已经转义的 HTML 实体
+    XCTAssertEqual(
+      try BBCode().renderHTML("[b]&gt;&gt;&gt;&gt;&gt;[/b]"),
+      "<strong>&gt;&gt;&gt;&gt;&gt;</strong>"
+    )
+  }
+
+  func testAlreadyEncodedAmpersand() {
+    // 测试已转义的 & 符号
+    XCTAssertEqual(
+      try BBCode().renderHTML("A &amp; B"),
+      "A &amp; B"
+    )
+  }
+
+  func testAlreadyEncodedQuote() {
+    // 测试已转义的引号
+    XCTAssertEqual(
+      try BBCode().renderHTML("He said &quot;Hello&quot;"),
+      "He said &quot;Hello&quot;"
+    )
+  }
+
+  func testMixedEncodedAndNormal() {
+    // 测试混合已转义和未转义的字符
+    XCTAssertEqual(
+      try BBCode().renderHTML("This & That &gt; More &lt; Less"),
+      "This &amp; That &gt; More &lt; Less"
+    )
+  }
 }
