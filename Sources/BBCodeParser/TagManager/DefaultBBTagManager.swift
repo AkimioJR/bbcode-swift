@@ -14,12 +14,4 @@ public class DefaultBBTagManager: BBTagManager {
     public func getDescription(_ tag: BBTag) -> BBTagDescription? {
         return DefaultBBTagToBBTagDescription[tag]
     }
-
-    public func getDescription(_ str: String) -> BBTagDescription? {
-        if let tag = self.getTag(str) {
-            return self.getDescription(tag)
-        } else {
-            return nil
-        }
-    }
 }
