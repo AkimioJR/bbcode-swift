@@ -32,7 +32,7 @@ extension BBCode {
     _ bbcode: String,
     using parser: BBParser = defaultBBParser,
     tagManager: BBTagManager = BBTagManager()
-  ) throws(BBCodeError) -> String {
+  ) throws(BBError) -> String {
     let tree = try parser(bbcode, BBParserContext(tagManager: tagManager))
     handleNewlineAndParagraph(node: tree)
     return defaultPlainRender(tree)

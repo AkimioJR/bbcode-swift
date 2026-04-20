@@ -1,4 +1,4 @@
-public enum BBCodeError: Error {
+public enum BBError: Error {
     case internalError(String)
     case unfinishedOpeningTag(String)
     case unfinishedClosingTag(String)

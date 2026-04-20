@@ -6,7 +6,7 @@ public class BBCode {
     bbcode: String,
     parser: BBParser = defaultBBParser,
     tagManager: BBTagManager = BBTagManager()
-  ) throws(BBCodeError) {
+  ) throws(BBError) {
     let _ = try parser(bbcode, BBParserContext(tagManager: tagManager))
   }
 }

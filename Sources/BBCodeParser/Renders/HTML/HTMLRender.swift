@@ -265,7 +265,7 @@ extension BBCode {
     using parser: BBParser = defaultBBParser,
     tagManager: BBTagManager = BBTagManager(),
     host: String? = nil,
-  ) throws(BBCodeError) -> String {
+  ) throws(BBError) -> String {
     // 先解码输入中的 HTML 实体，防止二次编码
     let decodedBBCode = bbcode.stringByDecodingHTML
     let domTree = try parser(decodedBBCode, BBParserContext(tagManager: tagManager))

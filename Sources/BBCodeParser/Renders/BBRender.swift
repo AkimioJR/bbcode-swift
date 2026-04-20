@@ -7,7 +7,7 @@ extension BBCode {
         tagManager: BBTagManager = BBTagManager(),
         renderer: BBRender<K, V, R>,
         args: [K: V] = [:],
-    ) throws(BBCodeError) -> R {
+    ) throws(BBError) -> R {
         let domTree = try parser(bbcode, BBParserContext(tagManager: tagManager))
         handleNewlineAndParagraph(node: domTree)
         return renderer(domTree, args)

@@ -4,7 +4,7 @@ import OSLog
 public func defaultBBParser(
   _ bbcode: String,
   _ ctx: BBParserContext,
-) throws(BBCodeError) -> BBNode {
+) throws(BBError) -> BBNode {
   var g = bbcode.unicodeScalars.makeIterator()
 
   var state: ParserState = .content
@@ -42,7 +42,7 @@ enum ParserState {
 func parseContent(
   _ g: inout String.UnicodeScalarView.Iterator,
   _ ctx: BBParserContext,
-) throws(BBCodeError) -> ParserState {
+) throws(BBError) -> ParserState {
   var newNode = BBNode(
     tag: .plain, parent: ctx.currentNode, tagManager: ctx.tagManager)
   ctx.currentNode.children.append(newNode)
@@ -72,7 +72,7 @@ func parseContent(
           newNode.value.append(Character(c))
         } else {
           Logger.parser.error("unclosed tag: \(ctx.currentNode.tag.description)")
-          throw BBCodeError.unclosedTag(unclosedTagDetail(unclosedNode: ctx.currentNode))
+          throw BBError.unclosedTag(unclosedTagDetail(unclosedNode: ctx.currentNode))
         }
       }
     } else {
@@ -112,7 +112,7 @@ func parseContent(
 private func parseTag(
   _ g: inout String.UnicodeScalarView.Iterator,
   _ ctx: BBParserContext,
-) throws(BBCodeError) -> ParserState {
+) throws(BBError) -> ParserState {
   //<opening_tag> ::= <opening_tag_1> | <opening_tag_2>
   let newNode = BBNode(tag: .unknown, parent: ctx.currentNode, tagManager: ctx.tagManager)
   ctx.currentNode.children.append(newNode)
@@ -191,7 +191,7 @@ private func parseTag(
   }
 
   Logger.parser.error("unfinished opening tag: \(ctx.currentNode.tag.description)")
-  throw BBCodeError.unfinishedOpeningTag(
+  throw BBError.unfinishedOpeningTag(
     unclosedTagDetail(unclosedNode: ctx.currentNode))
 }
 
@@ -199,7 +199,7 @@ private func parseTag(
 private func parseTagClosing(
   _ g: inout String.UnicodeScalarView.Iterator,
   _ ctx: BBParserContext,
-) throws(BBCodeError) -> ParserState {
+) throws(BBError) -> ParserState {
   var tagName: String = ""
   while let c = g.next() {
     if c == UnicodeScalar("]") {
@@ -218,7 +218,7 @@ private func parseTagClosing(
             if allowedChildren.contains(tag) {
               // not paired tag
               Logger.parser.error("unpaired tag: \(ctx.currentNode.tag.description)")
-              // ctx.error = BBCodeError.unpairedTag(
+              // ctx.error = BBError.unpairedTag(
               //   unclosedTagDetail(unclosedNode: ctx.currentNode))
               return .content
             }
@@ -256,7 +256,7 @@ private func parseTagClosing(
 private func parseAttr(
   _ g: inout String.UnicodeScalarView.Iterator,
   _ ctx: BBParserContext,
-) throws(BBCodeError) -> ParserState {
+) throws(BBError) -> ParserState {
   while let c = g.next() {
     if c == UnicodeScalar("]") {
       return .content
@@ -270,5 +270,5 @@ private func parseAttr(
 
   //unfinished attr
   Logger.parser.error("unfinished attr: \(ctx.currentNode.tag.description)")
-  throw BBCodeError.unfinishedAttr(unclosedTagDetail(unclosedNode: ctx.currentNode))
+  throw BBError.unfinishedAttr(unclosedTagDetail(unclosedNode: ctx.currentNode))
 }
