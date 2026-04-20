@@ -5,7 +5,7 @@ public class BBCode {
   public func validate(
     bbcode: String,
     parser: BBParser = defaultBBParser,
-    tagManager: BBTagManager = BBTagManager()
+    tagManager: BBTagManager = DefaultBBTagManager()
   ) throws(BBError) {
     let _ = try parser(bbcode, BBParserContext(tagManager: tagManager))
   }

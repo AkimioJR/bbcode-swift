@@ -169,8 +169,3 @@ let DefaultBBTagToBBTagDescription: [BBTag: BBTagDescription] = [
         isBlock: false
     ),
 ]
-
-public typealias GetTagDescription = @Sendable (BBTag) -> BBTagDescription?
-public let DefaultGetTagDescription: GetTagDescription = { tag in
-    return DefaultBBTagToBBTagDescription[tag]
-}

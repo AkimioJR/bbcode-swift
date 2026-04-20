@@ -31,7 +31,7 @@ extension BBCode {
   public func renderPlain(
     _ bbcode: String,
     using parser: BBParser = defaultBBParser,
-    tagManager: BBTagManager = BBTagManager()
+    tagManager: BBTagManager = DefaultBBTagManager()
   ) throws(BBError) -> String {
     let tree = try parser(bbcode, BBParserContext(tagManager: tagManager))
     handleNewlineAndParagraph(node: tree)

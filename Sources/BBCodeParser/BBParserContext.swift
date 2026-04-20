@@ -3,7 +3,7 @@ public class BBParserContext {
     var currentNode: BBNode
     private let rootNode: BBNode
 
-    public init(tagManager: BBTagManager = BBTagManager()) {
+    public init(tagManager: BBTagManager = DefaultBBTagManager()) {
         self.tagManager = tagManager
         self.rootNode = BBNode(tag: .root, parent: nil, tagManager: tagManager)
 

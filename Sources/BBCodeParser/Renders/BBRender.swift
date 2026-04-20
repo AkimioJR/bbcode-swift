@@ -4,7 +4,7 @@ extension BBCode {
     public func render<K: Hashable, V, R>(
         _ bbcode: String,
         using parser: BBParser = defaultBBParser,
-        tagManager: BBTagManager = BBTagManager(),
+        tagManager: BBTagManager = DefaultBBTagManager(),
         renderer: BBRender<K, V, R>,
         args: [K: V] = [:],
     ) throws(BBError) -> R {
