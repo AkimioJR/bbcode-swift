@@ -30,10 +30,10 @@ import Foundation
 extension BBCode {
   public func renderPlain(
     _ bbcode: String,
-    using parser: BBParser = defaultBBParser,
+    using parser: BBParser = DefaultBBParser(),
     tagManager: BBTagManager = DefaultBBTagManager()
   ) throws(BBError) -> String {
-    let tree = try parser(bbcode, BBParserContext(tagManager: tagManager))
+    let tree = try parser.parse(bbcode, BBParserContext(tagManager: tagManager))
     handleNewlineAndParagraph(node: tree)
     return defaultPlainRender(tree)
   }
