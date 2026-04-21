@@ -46,3 +46,9 @@ public func renderBBCodeToPlain(
   handleNewlineAndParagraph(node: tree)
   return defaultPlainRender(tree)
 }
+
+extension BBCode {
+  public func renderToPlain(_ bbcode: String) throws(BBError) -> String {
+    return try renderBBCodeToPlain(bbcode, using: parser, tagManager: tagManager)
+  }
+}

@@ -299,3 +299,9 @@ public func renderBBCodeToHTML(
   }
   return defaultHTMLRender(domTree, args: args)
 }
+
+extension BBCode {
+  public func renderToHTML(_ bbcode: String, host: String? = nil) throws(BBError) -> String {
+    return try renderBBCodeToHTML(bbcode, using: parser, tagManager: tagManager, host: host)
+  }
+}
