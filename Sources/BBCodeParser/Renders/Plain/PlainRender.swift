@@ -42,7 +42,7 @@ public func renderBBCodeToPlain(
   using parser: BBParser = DefaultBBParser(),
   tagManager: BBTagManager = DefaultBBTagManager()
 ) throws(BBError) -> String {
-  let tree = try parser.parse(bbcode, BBParserContext(tagManager: tagManager))
+  let tree = try parser.parse(bbcode, BBParserContext(with: tagManager))
   handleNewlineAndParagraph(node: tree)
   return defaultPlainRender(tree)
 }

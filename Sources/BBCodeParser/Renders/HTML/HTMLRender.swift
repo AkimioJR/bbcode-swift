@@ -289,7 +289,7 @@ public func renderBBCodeToHTML(
   host: String? = nil,
 ) throws(BBError) -> String {
   let decodedBBCode = bbcode.stringByDecodingHTML  // 先解码输入中的 HTML 实体，防止二次编码
-  let domTree = try parser.parse(decodedBBCode, BBParserContext(tagManager: tagManager))
+  let domTree = try parser.parse(decodedBBCode, BBParserContext(with: tagManager))
   handleNewlineAndParagraph(node: domTree)
   let args: [String: String]
   if let host = host {

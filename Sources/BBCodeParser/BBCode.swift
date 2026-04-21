@@ -11,6 +11,6 @@ public class BBCode<P: BBParser, T: BBTagManager> {
   }
 
   public func validate(_ bbcode: String) throws(BBError) {
-    let _ = try parser.parse(bbcode, BBParserContext(tagManager: tagManager))
+    let _ = try parser.parse(bbcode, BBParserContext(with: tagManager))
   }
 }
