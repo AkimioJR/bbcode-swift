@@ -259,27 +259,6 @@ import Foundation
 
 }
 
-extension BBCode {
-  public func renderHTML(
-    _ bbcode: String,
-    using parser: BBParser = DefaultBBParser(),
-    tagManager: BBTagManager = DefaultBBTagManager(),
-    host: String? = nil,
-  ) throws(BBError) -> String {
-    // 先解码输入中的 HTML 实体，防止二次编码
-    let decodedBBCode = bbcode.stringByDecodingHTML
-    let domTree = try parser.parse(decodedBBCode, BBParserContext(tagManager: tagManager))
-    handleNewlineAndParagraph(node: domTree)
-    let args: [String: String]
-    if let host = host {
-      args = ["host": host]
-    } else {
-      args = [:]
-    }
-    return defaultHTMLRender(domTree, args: args)
-  }
-}
-
 extension BBNode {
   /// 只有普通的节点值可以直接在渲染中使用，其他标签需要渲染子节点
   ///
@@ -303,76 +282,20 @@ extension BBNode {
   }
 }
 
-// func BBCodeToHTML(code: String, textSize: Int) -> String {
-//   guard let body = try? BBCode().renderHTML(code, args: ["textSize": textSize]) else {
-//     return code
-//   }
-//   let html = """
-//     <!doctype html>
-//       <html>
-//       <head>
-//         <meta charset="utf-8">
-//         <meta name='viewport' content='width=device-width, shrink-to-fit=YES' initial-scale='1.0' maximum-scale='1.0' minimum-scale='1.0' user-scalable='no'>
-//         <style type="text/css">
-//           :root {
-//             color-scheme: light dark;
-//           }
-//           body {
-//             font-size: \(textSize)px;
-//             font-family: sans-serif;
-//           }
-//           li:last-child {
-//             margin-bottom: 1em;
-//           }
-//           a {
-//             color: #0084B4;
-//             text-decoration: none;
-//           }
-//           span.mask {
-//             background-color: #555;
-//             color: #555;
-//             border-radius: 2px;
-//             box-shadow: #555 0 0 5px;
-//             -webkit-transition: all .5s linear;
-//           }
-//           span.mask:hover {
-//             color: #FFF;
-//           }
-//           pre code {
-//             border: 1px solid #EEE;
-//             border-radius: 0.5em;
-//             padding: 1em;
-//             display: block;
-//             overflow: auto;
-//           }
-//           blockquote {
-//             display: inline-block;
-//             color: #666;
-//           }
-//           blockquote:before {
-//             content: open-quote;
-//             display: inline;
-//             line-height: 0;
-//             position: relative;
-//             left: -0.5em;
-//             color: #CCC;
-//             font-size: 1em;
-//           }
-//           blockquote:after {
-//             content: close-quote;
-//             display: inline;
-//             line-height: 0;
-//             position: relative;
-//             left: 0.5em;
-//             color: #CCC;
-//             font-size: 1em;
-//           }
-//         </style>
-//       </head>
-//       <body>
-//         \(body)
-//       </body>
-//       </html>
-//     """
-//   return html
-// }
+public func renderBBCodeToHTML(
+  _ bbcode: String,
+  using parser: BBParser = DefaultBBParser(),
+  tagManager: BBTagManager = DefaultBBTagManager(),
+  host: String? = nil,
+) throws(BBError) -> String {
+  let decodedBBCode = bbcode.stringByDecodingHTML  // 先解码输入中的 HTML 实体，防止二次编码
+  let domTree = try parser.parse(decodedBBCode, BBParserContext(tagManager: tagManager))
+  handleNewlineAndParagraph(node: domTree)
+  let args: [String: String]
+  if let host = host {
+    args = ["host": host]
+  } else {
+    args = [:]
+  }
+  return defaultHTMLRender(domTree, args: args)
+}

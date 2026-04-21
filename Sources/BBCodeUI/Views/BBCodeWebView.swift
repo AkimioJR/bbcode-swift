@@ -60,7 +60,7 @@ func generateHTML(from bbcode: String) async -> String {
   return await Task.detached(priority: .high) {
     let body: String
     do {
-      body = try BBCode().renderHTML(bbcode)
+      body = try renderBBCodeToHTML(bbcode)
     } catch {
       // 解析失败时返回一个简单的错误提示 HTML
       body = "<p style='color:red;'>BBCode 解析失败: \(error.localizedDescription)</p>"

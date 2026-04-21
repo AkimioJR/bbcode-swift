@@ -27,18 +27,6 @@ import Foundation
   }
 }
 
-extension BBCode {
-  public func renderPlain(
-    _ bbcode: String,
-    using parser: BBParser = DefaultBBParser(),
-    tagManager: BBTagManager = DefaultBBTagManager()
-  ) throws(BBError) -> String {
-    let tree = try parser.parse(bbcode, BBParserContext(tagManager: tagManager))
-    handleNewlineAndParagraph(node: tree)
-    return defaultPlainRender(tree)
-  }
-}
-
 extension BBNode {
   func renderInnerPlain() -> String {
     var plain = ""
@@ -47,4 +35,14 @@ extension BBNode {
     }
     return plain
   }
+}
+
+public func renderBBCodeToPlain(
+  _ bbcode: String,
+  using parser: BBParser = DefaultBBParser(),
+  tagManager: BBTagManager = DefaultBBTagManager()
+) throws(BBError) -> String {
+  let tree = try parser.parse(bbcode, BBParserContext(tagManager: tagManager))
+  handleNewlineAndParagraph(node: tree)
+  return defaultPlainRender(tree)
 }
