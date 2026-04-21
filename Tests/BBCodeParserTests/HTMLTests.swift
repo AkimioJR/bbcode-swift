@@ -97,6 +97,15 @@ class HTMLTests: XCTestCase {
     )
   }
 
+  func testImageWithSize() {
+    XCTAssertEqual(
+      try renderBBCodeToHTML(
+        "存放于其他网络服务器的图片：[img=128,72]https://chii.in/img/ico/bgm88-31.gif[/img]"
+      ),
+      "存放于其他网络服务器的图片：<img src=\"https://chii.in/img/ico/bgm88-31.gif\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"128\" height=\"72\" />"
+    )
+  }
+
   func testImageInsideTextStyleTag() {
     XCTAssertEqual(
       try renderBBCodeToHTML("[font=Arial][img]https://chii.in/img/ico/bgm88-31.gif[/img][/font]"),
