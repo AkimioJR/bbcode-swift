@@ -126,12 +126,10 @@ import Foundation
         html =
           "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" />"
       } else {
-        let values = n.attr.components(separatedBy: ",").compactMap { UInt($0) }
-        if values.count == 2 && values[0] > 0 && values[0] <= 4096 && values[1] > 0
-          && values[1] <= 4096
-        {
+        let values = n.attr.components(separatedBy: ",")
+        if values.count == 2, let width = UInt(values[0]), let height = UInt(values[1]) {
           html =
-            "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(values[0])\" height=\"\(values[1])\" />"
+            "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(width)\" height=\"\(height)\" />"
         } else {
           html =
             "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\(n.escapedAttr)\" />"
