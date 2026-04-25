@@ -24,19 +24,19 @@ func safeUrl(url: String, defaultScheme: String?, defaultHost: String?) -> Strin
 func getFontSizeString(size: Int) -> String {
     switch size {
     case 1:
-        return "x-small"
+        return "xx-small"
     case 2:
-        return "small"
+        return "x-small"
     case 3:
-        return "medium"
+        return "small"
     case 4:
-        return "large"
+        return "medium"
     case 5:
-        return "x-large"
+        return "large"
     case 6:
-        return "xx-large"
+        return "x-large"
     case 7:
-        return "xxx-large"
+        return "xx-large"
     default:
         return "\(size)px"
     }
