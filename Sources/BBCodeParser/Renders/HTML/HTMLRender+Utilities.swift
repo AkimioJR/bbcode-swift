@@ -37,6 +37,8 @@ func getFontSizeString(size: Int) -> String {
         return "x-large"
     case 7:
         return "xx-large"
+    case 50...200:
+        return "\(size)%"
     default:
         return "\(size)px"
     }
