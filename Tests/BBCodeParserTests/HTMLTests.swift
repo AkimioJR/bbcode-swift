@@ -83,6 +83,13 @@ class HTMLTests: XCTestCase {
     )
   }
 
+  func testSizeWithPxSuffix() {
+    XCTAssertEqual(
+      try renderBBCodeToHTML("[size=49px]49像素[/size][size=12px]12像素[/size]"),
+      "<span style=\"font-size: 49px;\">49像素</span><span style=\"font-size: 12px;\">12像素</span>"
+    )
+  }
+
   func testLink() {
     XCTAssertEqual(
       try renderBBCodeToHTML("Bangumi 番组计划: [url]https://chii.in/[/url]"),
