@@ -24,7 +24,7 @@ func safeUrl(url: String, defaultScheme: String?, defaultHost: String?) -> Strin
 /// 获取字体大小字符串
 /// - Parameter attr: 字体大小属性值
 /// - Returns: 字体大小字符串，如果为无效值则返回 nil
-func getFontSizeString(_ attr: String) -> String? {
+func fontSizeStyle(from attr: String) -> String? {
     let attr = attr.lowercased()
 
     // 1. 优先处理纯数字情况

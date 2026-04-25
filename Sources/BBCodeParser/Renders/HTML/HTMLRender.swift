@@ -210,7 +210,7 @@ import Foundation
     if n.attr.isEmpty {
       html = "<span>\(n.renderInnerHTML(args))</span>"
     } else {
-      if let style = getFontSizeString(n.attr) {
+      if let style = fontSizeStyle(from: n.attr) {
         html = "<span style=\"font-size: \(style);\">\(n.renderInnerHTML(args))</span>"
       } else {
         html = "[size=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/size]"
