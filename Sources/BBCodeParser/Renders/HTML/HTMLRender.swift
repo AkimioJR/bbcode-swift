@@ -208,16 +208,10 @@ import Foundation
   case .size:
     var html: String
     if n.attr.isEmpty {
-      html = "<span style=\"color: black;\">\(n.renderInnerHTML(args))</span>"
+      html = "<span>\(n.renderInnerHTML(args))</span>"
     } else {
-      var valid = false
-      let size = Int(n.attr)
-      if size != nil {
-        valid = true
-      }
-      if valid {
-        html =
-          "<span style=\"font-size: \(getFontSizeString(size: size!));\">\(n.renderInnerHTML(args))</span>"
+      if let style = getFontSizeString(n.attr) {
+        html = "<span style=\"font-size: \(style);\">\(n.renderInnerHTML(args))</span>"
       } else {
         html = "[size=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/size]"
       }

@@ -21,27 +21,33 @@ func safeUrl(url: String, defaultScheme: String?, defaultHost: String?) -> Strin
     return nil
 }
 
-func getFontSizeString(size: Int) -> String {
-    switch size {
-    case 1:
-        return "xx-small"
-    case 2:
-        return "x-small"
-    case 3:
-        return "small"
-    case 4:
-        return "medium"
-    case 5:
-        return "large"
-    case 6:
-        return "x-large"
-    case 7:
-        return "xx-large"
-    case 50...200:
-        return "\(size)%"
-    default:
-        return "\(size)px"
+/// 获取字体大小字符串
+/// - Parameter attr: 字体大小属性值
+/// - Returns: 字体大小字符串，如果为无效值则返回 nil
+func getFontSizeString(_ attr: String) -> String? {
+    if let size = UInt(attr), size < 200 {
+        switch size {
+        case 1:
+            return "xx-small"
+        case 2:
+            return "x-small"
+        case 3:
+            return "small"
+        case 4:
+            return "medium"
+        case 5:
+            return "large"
+        case 6:
+            return "x-large"
+        case 7:
+            return "xx-large"
+        case 50...200:
+            return "\(size)%"
+        default:
+            return "\(size)px"
+        }
     }
+    return nil
 }
 
 extension String {
