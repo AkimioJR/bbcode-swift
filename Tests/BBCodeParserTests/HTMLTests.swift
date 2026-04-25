@@ -72,7 +72,14 @@ class HTMLTests: XCTestCase {
   func testSizeWithNewlineBeforeClosingTag() {
     XCTAssertEqual(
       try renderBBCodeToHTML("[size=5]2025.1.6 \n全文更新完毕[/size]"),
-      "<span style=\"font-size: x-large;\">2025.1.6 <br>全文更新完毕</span>"
+      "<span style=\"font-size: large;\">2025.1.6 <br>全文更新完毕</span>"
+    )
+  }
+
+  func testSizeWithPercentage() {
+    XCTAssertEqual(
+      try renderBBCodeToHTML("[size=100]正常大小[/size][size=150]放大1.5倍[/size][size=50]缩小一半[/size]"),
+      "<span style=\"font-size: 100%;\">正常大小</span><span style=\"font-size: 150%;\">放大1.5倍</span><span style=\"font-size: 50%;\">缩小一半</span>"
     )
   }
 
