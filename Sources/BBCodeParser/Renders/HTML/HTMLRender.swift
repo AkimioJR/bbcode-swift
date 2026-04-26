@@ -1,107 +1,145 @@
 import Foundation
 
-@Sendable public func defaultHTMLRender(_ n: BBNode, args: [String: String]) -> String {
+@Sendable public func defaultHTMLRender(
+  _ n: BBNode,
+  args: [String: String],
+  into buffer: inout String,
+) {
   switch n.tag {
   case .plain:
-    return n.escapedValue
+    buffer.append(n.escapedValue)
   case .br:
-    return "<br>"
+    buffer.append("<br>")
   case .paragraphStart:
-    return "<p>"
+    buffer.append("<p>")
   case .paragraphEnd:
-    return "</p>"
+    buffer.append("</p>")
   case .root:
-    return n.renderInnerHTML(args)
+    return n.renderInnerHTML(args, into: &buffer)
 
   case .center:
-    return HTMLAlignment.center.renderHTMLAlignment(n.renderInnerHTML(args))
+    HTMLAlignment.center.renderHTMLAlignment(n, args: args, into: &buffer)
   case .left:
-    return HTMLAlignment.left.renderHTMLAlignment(n.renderInnerHTML(args))
+    HTMLAlignment.left.renderHTMLAlignment(n, args: args, into: &buffer)
   case .right:
-    return HTMLAlignment.right.renderHTMLAlignment(n.renderInnerHTML(args))
+    HTMLAlignment.right.renderHTMLAlignment(n, args: args, into: &buffer)
   case .align:
     if let align = HTMLAlignment(n.escapedAttr) {
-      return align.renderHTMLAlignment(n.renderInnerHTML(args))
+      align.renderHTMLAlignment(n, args: args, into: &buffer)
+    } else {
+      n.renderInnerHTML(args, into: &buffer)
     }
-    return n.renderInnerHTML(args)
 
   case .list:
     if n.attr.isEmpty {
-      return "<ul>\(n.renderInnerHTML(args))</ul>"
+      buffer.append("<ul>")
+      n.renderInnerHTML(args, into: &buffer)
+      buffer.append("</ul>")
     } else {
-      return "<ol>\(n.renderInnerHTML(args))</ol>"
+      buffer.append("<ol>")
+      n.renderInnerHTML(args, into: &buffer)
+      buffer.append("</ol>")
     }
   case .listitem:
-    return "<li>\(n.renderInnerHTML(args))</li>"
+    buffer.append("<li>")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</li>")
 
   case .code:
-    return "<div class=\"code\"><pre><code>\(n.renderInnerHTML(args))</code></pre></div>"
+    buffer.append("<div class=\"code\"><pre><code>")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</code></pre></div>")
+
   case .quote:
-    return "<div class=\"quote\"><blockquote>\(n.renderInnerHTML(args))</blockquote></div>"
+    buffer.append("<div class=\"quote\"><blockquote>")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</blockquote></div>")
 
   case .url:
     let host = args["host"]
     if n.attr.isEmpty {
       let isPlain = n.children.allSatisfy { $0.tag == .plain }
       if isPlain {
-        let link = n.renderInnerHTML(args)
+        var link = ""
+        n.renderInnerHTML(args, into: &link)
         if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
-          return
+          buffer.append(
             "<a href=\"\(link)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">\(safeLink)</a>"
+          )
         } else {
-          return link
+          buffer.append(link)
         }
       } else {
-        return n.renderInnerHTML(args)
+        n.renderInnerHTML(args, into: &buffer)
       }
     } else {
       let link = n.escapedAttr
       if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
-        return
-          "<a href=\"\(safeLink)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">\(n.renderInnerHTML(args))</a>"
+        buffer.append(
+          "<a href=\"\(safeLink)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">"
+        )
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</a>")
       } else {
-        return n.renderInnerHTML(args)
+        n.renderInnerHTML(args, into: &buffer)
       }
     }
 
   case .image:
     let host = args["host"]
-    let content = n.renderInnerHTML(args)
+    var content = ""
+    n.renderInnerHTML(args, into: &content)
     if let url = safeUrl(url: content, defaultScheme: "https", defaultHost: host) {
       if n.attr.isEmpty {
-        return
+        buffer.append(
           "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" />"
+        )
       } else {
         let values = n.attr.components(separatedBy: ",")
         if values.count == 2, let width = UInt(values[0]), let height = UInt(values[1]) {
-          return
+          buffer.append(
             "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(width)\" height=\"\(height)\" />"
+          )
         } else {
-          return
+          buffer.append(
             "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\(n.escapedAttr)\" />"
+          )
+
         }
       }
     } else {
-      return content
+      buffer.append(content)
     }
 
   case .bold:
-    return "<strong>\(n.renderInnerHTML(args))</strong>"
+    buffer.append("<strong>")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</strong>")
   case .italic:
-    return "<em>\(n.renderInnerHTML(args))</em>"
+    buffer.append("<em>")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</em>")
   case .font:
     if n.attr.isEmpty {
-      return n.renderInnerHTML(args)
+      n.renderInnerHTML(args, into: &buffer)
     } else {
-      return "<span style=\"font-family: \(n.escapedAttr);\">\(n.renderInnerHTML(args))</span>"
+      buffer.append("<span style=\"font-family: \(n.escapedAttr);\">")
+      n.renderInnerHTML(args, into: &buffer)
+      buffer.append("</span>")
     }
   case .underline:
-    return "<u>\(n.renderInnerHTML(args))</u>"
+    buffer.append("<u>")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</u>")
   case .strikethrough:
-    return "<del>\(n.renderInnerHTML(args))</del>"
+    buffer.append("<del>")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</del>")
   case .color:
     if n.attr.isEmpty {
-      return "<span style=\"color: black;\">\(n.renderInnerHTML(args))</span>"
+      buffer.append("<span style=\"color: black;\">")
+      n.renderInnerHTML(args, into: &buffer)
+      buffer.append("</span>")
     } else {
       var valid = false
       if [
@@ -129,28 +167,42 @@ import Foundation
         }
       }
       if valid {
-        return "<span style=\"color: \(n.attr);\">\(n.renderInnerHTML(args))</span>"
+        buffer.append("<span style=\"color: \(n.attr);\">")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</span>")
       } else {
-        return "[color=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/color]"
+        buffer.append("[color=\(n.escapedAttr)]")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("[/color]")
       }
     }
   case .size:
     if n.attr.isEmpty {
-      return "<span>\(n.renderInnerHTML(args))</span>"
+      buffer.append("<span>")
+      n.renderInnerHTML(args, into: &buffer)
+      buffer.append("</span>")
     } else {
       if let style = fontSizeStyle(from: n.attr) {
-        return "<span style=\"font-size: \(style);\">\(n.renderInnerHTML(args))</span>"
+        buffer.append("<span style=\"font-size: \(style);\">")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</span>")
       } else {
-        return "[size=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/size]"
+        buffer.append("[size=\(n.escapedAttr)]")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("[/size]")
       }
     }
   case .mask:
-    return "<span class=\"mask\">\(n.renderInnerHTML(args))</span>"
+    buffer.append("<span class=\"mask\">")
+    n.renderInnerHTML(args, into: &buffer)
+    buffer.append("</span>")
   case .ruby:
     if n.attr.isEmpty {
-      return n.renderInnerHTML(args)
+      n.renderInnerHTML(args, into: &buffer)
     } else {
-      return "<ruby>\(n.renderInnerHTML(args))<rp>(</rp><rt>\(n.escapedAttr)</rt><rp>)</rp></ruby>"
+      buffer.append("<ruby>")
+      n.renderInnerHTML(args, into: &buffer)
+      buffer.append("<rp>(</rp><rt>\(n.escapedAttr)</rt><rp>)</rp></ruby>")
     }
   default:
 
@@ -161,13 +213,13 @@ import Foundation
       } else {
         startLabel = "[\(n.tag.label)=\(n.attr)]"
       }
-      return "[\(startLabel)]\(n.value)[/\(n.tag.label)]"
+      buffer.append("[\(startLabel)]\(n.value)[/\(n.tag.label)]")
     } else {
       var html: String = ""
       for child in n.children {
         html.append(child.renderInnerPlain())
       }
-      return html
+      buffer.append(html)
     }
   }
 
@@ -185,14 +237,10 @@ extension BBNode {
     return self.attr.stringByEncodingHTML
   }
 
-  func renderInnerHTML(
-    _ args: [String: String]
-  ) -> String {
-    var html = ""
+  func renderInnerHTML(_ args: [String: String], into buffer: inout String) {
     for child in children {
-      html.append(defaultHTMLRender(child, args: args))
+      defaultHTMLRender(child, args: args, into: &buffer)
     }
-    return html
   }
 }
 
@@ -211,7 +259,10 @@ public func renderBBCodeToHTML(
   } else {
     args = [:]
   }
-  return defaultHTMLRender(domTree, args: args)
+  var buffer = ""
+  buffer.reserveCapacity(bbcode.count * 4)  // 预估 HTML 长度，避免频繁扩容
+  defaultHTMLRender(domTree, args: args, into: &buffer)
+  return buffer
 }
 
 extension BBCode {
