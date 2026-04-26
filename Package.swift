@@ -17,7 +17,7 @@ let package = Package(
     .library(name: "BBCodeUI", targets: ["BBCodeUI"]),
   ],
   dependencies: [
-
+    .package(url: "https://github.com/ordo-one/package-benchmark", .upToNextMajor(from: "1.4.0"))
   ],
   targets: [
     .target(
@@ -31,8 +31,44 @@ let package = Package(
     .target(
       name: "BBCodeUI",
       dependencies: [
-        "BBCodeParser",
+        "BBCodeParser"
       ]
     ),
   ]
 )
+
+// Benchmark of BBCode parsing
+package.targets += [
+  .executableTarget(
+    name: "BBCodeParseBenchmark",
+    dependencies: [
+      .product(name: "Benchmark", package: "package-benchmark"),
+      .target(name: "BBCodeParser"),
+    ],
+    path: "Benchmarks/BBCodeParseBenchmark",
+    resources: [
+      .copy("../Resources")
+    ],
+    plugins: [
+      .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
+    ],
+  )
+]
+
+// Benchmark of HTML rendering
+package.targets += [
+  .executableTarget(
+    name: "HTMLRenderBenchmark",
+    dependencies: [
+      .product(name: "Benchmark", package: "package-benchmark"),
+      .target(name: "BBCodeParser"),
+    ],
+    path: "Benchmarks/HTMLRenderBenchmark",
+    resources: [
+      .copy("../Resources")
+    ],
+    plugins: [
+      .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
+    ],
+  )
+]
