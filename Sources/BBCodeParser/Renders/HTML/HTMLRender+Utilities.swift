@@ -132,3 +132,26 @@ extension String {
         return result
     }
 }
+
+enum HTMLAlignment: String {
+    case left = "left"
+    case center = "center"
+    case right = "right"
+
+    init?(_ rawValue: String) {
+        switch rawValue.lowercased() {
+        case "left":
+            self = .left
+        case "right":
+            self = .right
+        case "center":
+            self = .center
+        default:
+            return nil
+        }
+    }
+
+    func renderHTMLAlignment(_ inner: String) -> String {
+        return "<p style=\"text-align: \(self.rawValue);\">\(inner)</p>"
+    }
+}

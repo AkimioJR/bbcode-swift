@@ -14,24 +14,16 @@ import Foundation
     return n.renderInnerHTML(args)
 
   case .center:
-    return "<p style=\"text-align: center;\">\(n.renderInnerHTML(args))</p>"
+    return HTMLAlignment.center.renderHTMLAlignment(n.renderInnerHTML(args))
   case .left:
-    return "<p style=\"text-align: left;\">\(n.renderInnerHTML(args))</p>"
+    return HTMLAlignment.left.renderHTMLAlignment(n.renderInnerHTML(args))
   case .right:
-    return "<p style=\"text-align: right;\">\(n.renderInnerHTML(args))</p>"
+    return HTMLAlignment.right.renderHTMLAlignment(n.renderInnerHTML(args))
   case .align:
-    let align: String
-    switch n.escapedAttr.lowercased() {
-    case "left":
-      align = "left"
-    case "right":
-      align = "right"
-    case "center":
-      align = "center"
-    default:
-      return n.renderInnerHTML(args)
+    if let align = HTMLAlignment(n.escapedAttr) {
+      return align.renderHTMLAlignment(n.renderInnerHTML(args))
     }
-    return "<p style=\"text-align: \(align);\">\(n.renderInnerHTML(args))</p>"
+    return n.renderInnerHTML(args)
 
   case .list:
     if n.attr.isEmpty {
@@ -39,7 +31,6 @@ import Foundation
     } else {
       return "<ol>\(n.renderInnerHTML(args))</ol>"
     }
-
   case .listitem:
     return "<li>\(n.renderInnerHTML(args))</li>"
 
