@@ -14,26 +14,13 @@ import Foundation
     return n.renderInnerHTML(args)
 
   case .center:
-    var html: String
-    html = "<p style=\"text-align: center;\">"
-    html.append(n.renderInnerHTML(args))
-    html.append("</p>")
-    return html
+    return "<p style=\"text-align: center;\">\(n.renderInnerHTML(args))</p>"
   case .left:
-    var html: String
-    html = "<p style=\"text-align: left;\">"
-    html.append(n.renderInnerHTML(args))
-    html.append("</p>")
-    return html
+    return "<p style=\"text-align: left;\">\(n.renderInnerHTML(args))</p>"
   case .right:
-    var html: String
-    html = "<p style=\"text-align: right;\">"
-    html.append(n.renderInnerHTML(args))
-    html.append("</p>")
-    return html
+    return "<p style=\"text-align: right;\">\(n.renderInnerHTML(args))</p>"
   case .align:
-    var html: String
-    var align = ""
+    let align: String
     switch n.escapedAttr.lowercased() {
     case "left":
       align = "left"
@@ -42,136 +29,88 @@ import Foundation
     case "center":
       align = "center"
     default:
-      align = ""
-    }
-    if align.isEmpty {
       return n.renderInnerHTML(args)
     }
-    html = "<p style=\"text-align: \(align);\">"
-    html.append(n.renderInnerHTML(args))
-    html.append("</p>")
-    return html
+    return "<p style=\"text-align: \(align);\">\(n.renderInnerHTML(args))</p>"
 
   case .list:
-    var html: String
     if n.attr.isEmpty {
-      html = "<ul>"
+      return "<ul>\(n.renderInnerHTML(args))</ul>"
     } else {
-      html = "<ol>"
+      return "<ol>\(n.renderInnerHTML(args))</ol>"
     }
-    html.append(n.renderInnerHTML(args))
-    if n.attr.isEmpty {
-      html.append("</ul>")
-    } else {
-      html.append("</ol>")
-    }
-    return html
+
   case .listitem:
-    var html: String = "<li>"
-    html.append(n.renderInnerHTML(args))
-    html.append("</li>")
-    return html
+    return "<li>\(n.renderInnerHTML(args))</li>"
 
   case .code:
-    var html = "<div class=\"code\"><pre><code>"
-    html.append(n.renderInnerHTML(args))
-    html.append("</code></pre></div>")
-    return html
+    return "<div class=\"code\"><pre><code>\(n.renderInnerHTML(args))</code></pre></div>"
   case .quote:
-    var html: String
-    html = "<div class=\"quote\"><blockquote>"
-    html.append(n.renderInnerHTML(args))
-    html.append("</blockquote></div>")
-    return html
+    return "<div class=\"quote\"><blockquote>\(n.renderInnerHTML(args))</blockquote></div>"
 
   case .url:
     let host = args["host"]
-    var html: String
-    var link: String
     if n.attr.isEmpty {
-      var isPlain = true
-      for child in n.children {
-        if child.tag != .plain {
-          isPlain = false
-        }
-      }
+      let isPlain = n.children.allSatisfy { $0.tag == .plain }
       if isPlain {
-        link = n.renderInnerHTML(args)
+        let link = n.renderInnerHTML(args)
         if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
-          html =
+          return
             "<a href=\"\(link)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">\(safeLink)</a>"
         } else {
-          html = link
+          return link
         }
       } else {
-        html = n.renderInnerHTML(args)
+        return n.renderInnerHTML(args)
       }
     } else {
-      link = n.escapedAttr
+      let link = n.escapedAttr
       if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
-        html =
+        return
           "<a href=\"\(safeLink)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">\(n.renderInnerHTML(args))</a>"
       } else {
-        html = n.renderInnerHTML(args)
+        return n.renderInnerHTML(args)
       }
     }
-    return html
 
   case .image:
     let host = args["host"]
     let content = n.renderInnerHTML(args)
     if let url = safeUrl(url: content, defaultScheme: "https", defaultHost: host) {
-      let html: String
       if n.attr.isEmpty {
-        html =
+        return
           "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" />"
       } else {
         let values = n.attr.components(separatedBy: ",")
         if values.count == 2, let width = UInt(values[0]), let height = UInt(values[1]) {
-          html =
+          return
             "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(width)\" height=\"\(height)\" />"
         } else {
-          html =
+          return
             "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\(n.escapedAttr)\" />"
         }
       }
-      return html
     } else {
       return content
     }
 
   case .bold:
-    var html: String = "<strong>"
-    html.append(n.renderInnerHTML(args))
-    html.append("</strong>")
-    return html
+    return "<strong>\(n.renderInnerHTML(args))</strong>"
   case .italic:
-    var html: String = "<em>"
-    html.append(n.renderInnerHTML(args))
-    html.append("</em>")
-    return html
+    return "<em>\(n.renderInnerHTML(args))</em>"
   case .font:
-    var html: String
     if n.attr.isEmpty {
-      html = n.renderInnerHTML(args)
+      return n.renderInnerHTML(args)
     } else {
-      html = "<span style=\"font-family: \(n.escapedAttr);\">\(n.renderInnerHTML(args))</span>"
+      return "<span style=\"font-family: \(n.escapedAttr);\">\(n.renderInnerHTML(args))</span>"
     }
-    return html
   case .underline:
-    var html: String = "<u>"
-    html.append(n.renderInnerHTML(args))
-    html.append("</u>")
-    return html
+    return "<u>\(n.renderInnerHTML(args))</u>"
   case .strikethrough:
-    var html: String = "<del>"
-    html.append(n.renderInnerHTML(args))
-    html.append("</del>")
-    return html
+    return "<del>\(n.renderInnerHTML(args))</del>"
   case .color:
-    var html: String
     if n.attr.isEmpty {
-      html = "<span style=\"color: black;\">\(n.renderInnerHTML(args))</span>"
+      return "<span style=\"color: black;\">\(n.renderInnerHTML(args))</span>"
     } else {
       var valid = false
       if [
@@ -199,39 +138,31 @@ import Foundation
         }
       }
       if valid {
-        html = "<span style=\"color: \(n.attr);\">\(n.renderInnerHTML(args))</span>"
+        return "<span style=\"color: \(n.attr);\">\(n.renderInnerHTML(args))</span>"
       } else {
-        html = "[color=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/color]"
+        return "[color=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/color]"
       }
     }
-    return html
   case .size:
-    var html: String
     if n.attr.isEmpty {
-      html = "<span>\(n.renderInnerHTML(args))</span>"
+      return "<span>\(n.renderInnerHTML(args))</span>"
     } else {
       if let style = fontSizeStyle(from: n.attr) {
-        html = "<span style=\"font-size: \(style);\">\(n.renderInnerHTML(args))</span>"
+        return "<span style=\"font-size: \(style);\">\(n.renderInnerHTML(args))</span>"
       } else {
-        html = "[size=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/size]"
+        return "[size=\(n.escapedAttr)]\(n.renderInnerHTML(args))[/size]"
       }
     }
-    return html
   case .mask:
-    var html: String = "<span class=\"mask\">"
-    html.append(n.renderInnerHTML(args))
-    html.append("</span>")
-    return html
+    return "<span class=\"mask\">\(n.renderInnerHTML(args))</span>"
   case .ruby:
-    var html: String
     if n.attr.isEmpty {
-      html = n.renderInnerHTML(args)
+      return n.renderInnerHTML(args)
     } else {
-      html =
-        "<ruby>\(n.renderInnerHTML(args))<rp>(</rp><rt>\(n.escapedAttr)</rt><rp>)</rp></ruby>"
+      return "<ruby>\(n.renderInnerHTML(args))<rp>(</rp><rt>\(n.escapedAttr)</rt><rp>)</rp></ruby>"
     }
-    return html
   default:
+
     if n.children.isEmpty {
       let startLabel: String
       if n.attr.isEmpty {
