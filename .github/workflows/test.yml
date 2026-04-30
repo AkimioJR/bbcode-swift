@@ -20,6 +20,14 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Install dependencies
+        run: |
+          brew install jemalloc
+
       - name: Build project
         run: swift build
 
