@@ -226,15 +226,59 @@ import Foundation
 }
 
 extension BBNode {
-  /// 只有普通的节点值可以直接在渲染中使用，其他标签需要渲染子节点
-  ///
-  /// Only plain node value is directly usable in render, other tags needs to render subnode.
+  static private let htmlEntities: [Unicode.Scalar: String] = [
+    "\"": "&quot;",
+    "&": "&amp;",
+    "'": "&#39;",
+    "<": "&lt;",
+    ">": "&gt;",
+  ]
+
+  static private func stringByEncodingHTML(from text: String) -> String {
+    var result = ""
+    // 性能优化：预分配容量，减少字符串内存重分配
+    result.reserveCapacity(text.utf16.count * 2)
+
+    for scalar in text.unicodeScalars {
+      switch scalar {
+      // 1. 优先处理高频 HTML 实体转义
+      case let s where Self.htmlEntities.keys.contains(s):
+        result.append(Self.htmlEntities[s]!)
+
+      // 2. 处理 0x0000-0x0008 控制字符
+      case "\0"..<"\t":
+        result.append("&#x\(String(UInt32(scalar), radix: 16));")
+
+      // 3. 处理 CJK 及全角字符范围 (直接保留)
+      // case "\u{3000}"..."\u{303F}",  // CJK 标点
+      //     "\u{3400}"..."\u{4DBF}",  // CJK 扩展 A
+      //     "\u{4E00}"..."\u{9FFF}",  // CJK 统一汉字
+      //     "\u{FF00}"..."\u{FFEF}",  // 全角字符
+      //     "\u{20000}"..."\u{2A6DF}",  // CJK 扩展 B
+      //     "\u{2A700}"..."\u{2B73F}",  // CJK 扩展 C
+      //     "\u{2B740}"..."\u{2B81F}",  // CJK 扩展 D
+      //     "\u{2B820}"..."\u{2CEAF}":  // CJK 扩展 E
+      //     result.append(Character(scalar))
+
+      // 4. 处理 ASCII 0x7E (~) 以上的字符
+      case let s where s > "~":
+        result.append("&#\(UInt32(s));")
+
+      // 5. 普通 ASCII 字符，直接追加
+      default:
+        result.append(Character(scalar))
+      }
+    }
+
+    return result
+  }
+
   var escapedValue: String {
-    return self.value.stringByEncodingHTML
+    return Self.stringByEncodingHTML(from: self.value)
   }
 
   var escapedAttr: String {
-    return self.attr.stringByEncodingHTML
+    return Self.stringByEncodingHTML(from: self.attr)
   }
 
   func renderInnerHTML(_ args: [String: String], into buffer: inout String) {
@@ -250,8 +294,7 @@ public func renderBBCodeToHTML(
   tagManager: BBTagManager = DefaultBBTagManager(),
   host: String? = nil,
 ) throws(BBError) -> String {
-  let decodedBBCode = bbcode.stringByDecodingHTML  // 先解码输入中的 HTML 实体，防止二次编码
-  let domTree = try parser.parse(decodedBBCode, BBParserContext(with: tagManager))
+  let domTree = try parser.parse(bbcode, BBParserContext(with: tagManager))
   handleNewlineAndParagraph(node: domTree)
   let args: [String: String]
   if let host = host {
