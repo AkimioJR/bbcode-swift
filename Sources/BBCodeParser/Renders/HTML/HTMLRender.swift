@@ -1,315 +1,316 @@
 import Foundation
 
 @Sendable public func defaultHTMLRender(
-  _ n: BBNode,
-  args: [String: String],
-  into buffer: inout String,
+    _ n: BBNode,
+    args: [String: String],
+    into buffer: inout String,
 ) {
-  switch n.tag {
-  case .plain:
-    buffer.append(n.escapedValue)
-  case .br:
-    buffer.append("<br>")
-  case .paragraphStart:
-    buffer.append("<p>")
-  case .paragraphEnd:
-    buffer.append("</p>")
-  case .root:
-    return n.renderInnerHTML(args, into: &buffer)
+    switch n.tag {
+    case .plain:
+        buffer.append(n.escapedValue)
+    case .br:
+        buffer.append("<br>")
+    case .paragraphStart:
+        buffer.append("<p>")
+    case .paragraphEnd:
+        buffer.append("</p>")
+    case .root:
+        return n.renderInnerHTML(args, into: &buffer)
 
-  case .center:
-    HTMLAlignment.center.renderHTMLAlignment(n, args: args, into: &buffer)
-  case .left:
-    HTMLAlignment.left.renderHTMLAlignment(n, args: args, into: &buffer)
-  case .right:
-    HTMLAlignment.right.renderHTMLAlignment(n, args: args, into: &buffer)
-  case .align:
-    if let align = HTMLAlignment(n.escapedAttr) {
-      align.renderHTMLAlignment(n, args: args, into: &buffer)
-    } else {
-      n.renderInnerHTML(args, into: &buffer)
-    }
-
-  case .list:
-    if n.attr.isEmpty {
-      buffer.append("<ul>")
-      n.renderInnerHTML(args, into: &buffer)
-      buffer.append("</ul>")
-    } else {
-      buffer.append("<ol>")
-      n.renderInnerHTML(args, into: &buffer)
-      buffer.append("</ol>")
-    }
-  case .listitem:
-    buffer.append("<li>")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</li>")
-
-  case .code:
-    buffer.append("<div class=\"code\"><pre><code>")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</code></pre></div>")
-
-  case .quote:
-    buffer.append("<div class=\"quote\"><blockquote>")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</blockquote></div>")
-
-  case .url:
-    let host = args["host"]
-    if n.attr.isEmpty {
-      let isPlain = n.children.allSatisfy { $0.tag == .plain }
-      if isPlain {
-        var link = ""
-        n.renderInnerHTML(args, into: &link)
-        if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
-          buffer.append(
-            "<a href=\"\(link)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">\(safeLink)</a>"
-          )
+    case .center:
+        HTMLAlignment.center.renderHTMLAlignment(n, args: args, into: &buffer)
+    case .left:
+        HTMLAlignment.left.renderHTMLAlignment(n, args: args, into: &buffer)
+    case .right:
+        HTMLAlignment.right.renderHTMLAlignment(n, args: args, into: &buffer)
+    case .align:
+        if let align = HTMLAlignment(n.escapedAttr) {
+            align.renderHTMLAlignment(n, args: args, into: &buffer)
         } else {
-          buffer.append(link)
+            n.renderInnerHTML(args, into: &buffer)
         }
-      } else {
-        n.renderInnerHTML(args, into: &buffer)
-      }
-    } else {
-      let link = n.escapedAttr
-      if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
-        buffer.append(
-          "<a href=\"\(safeLink)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">"
-        )
-        n.renderInnerHTML(args, into: &buffer)
-        buffer.append("</a>")
-      } else {
-        n.renderInnerHTML(args, into: &buffer)
-      }
-    }
 
-  case .image:
-    let host = args["host"]
-    var content = ""
-    n.renderInnerHTML(args, into: &content)
-    if let url = safeUrl(url: content, defaultScheme: "https", defaultHost: host) {
-      if n.attr.isEmpty {
-        buffer.append(
-          "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" />"
-        )
-      } else {
-        let values = n.attr.components(separatedBy: ",")
-        if values.count == 2, let width = UInt(values[0]), let height = UInt(values[1]) {
-          buffer.append(
-            "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(width)\" height=\"\(height)\" />"
-          )
+    case .list:
+        if n.attr.isEmpty {
+            buffer.append("<ul>")
+            n.renderInnerHTML(args, into: &buffer)
+            buffer.append("</ul>")
         } else {
-          buffer.append(
-            "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\(n.escapedAttr)\" />"
-          )
-
+            buffer.append("<ol>")
+            n.renderInnerHTML(args, into: &buffer)
+            buffer.append("</ol>")
         }
-      }
-    } else {
-      buffer.append(content)
-    }
+    case .listitem:
+        buffer.append("<li>")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</li>")
 
-  case .bold:
-    buffer.append("<strong>")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</strong>")
-  case .italic:
-    buffer.append("<em>")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</em>")
-  case .font:
-    if n.attr.isEmpty {
-      n.renderInnerHTML(args, into: &buffer)
-    } else {
-      buffer.append("<span style=\"font-family: \(n.escapedAttr);\">")
-      n.renderInnerHTML(args, into: &buffer)
-      buffer.append("</span>")
-    }
-  case .underline:
-    buffer.append("<u>")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</u>")
-  case .strikethrough:
-    buffer.append("<del>")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</del>")
-  case .color:
-    if n.attr.isEmpty {
-      buffer.append("<span style=\"color: black;\">")
-      n.renderInnerHTML(args, into: &buffer)
-      buffer.append("</span>")
-    } else {
-      var valid = false
-      if [
-        "black", "green", "silver", "gray", "olive", "white", "yellow", "orange", "maroon",
-        "navy", "red", "blue", "purple", "teal", "fuchsia", "aqua", "violet", "pink", "lime",
-        "magenta", "brown",
-      ].contains(n.attr) {
-        valid = true
-      } else {
-        if n.attr.unicodeScalars.count == 4 || n.attr.unicodeScalars.count == 7 {
-          var g = n.attr.unicodeScalars.makeIterator()
-          if g.next() == "#" {
-            while let c = g.next() {
-              if (c >= UnicodeScalar("0") && c <= UnicodeScalar("9"))
-                || (c >= UnicodeScalar("a") && c <= UnicodeScalar("f"))
-                || (c >= UnicodeScalar("A") && c <= UnicodeScalar("F"))
-              {
-                valid = true
-              } else {
-                valid = false
-                break
-              }
+    case .code:
+        buffer.append("<div class=\"code\"><pre><code>")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</code></pre></div>")
+
+    case .quote:
+        buffer.append("<div class=\"quote\"><blockquote>")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</blockquote></div>")
+
+    case .url:
+        let host = args["host"]
+        if n.attr.isEmpty {
+            let isPlain = n.children.allSatisfy { $0.tag == .plain }
+            if isPlain {
+                var link = ""
+                n.renderInnerHTML(args, into: &link)
+                if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
+                    buffer.append(
+                        "<a href=\"\(link)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">\(safeLink)</a>"
+                    )
+                } else {
+                    buffer.append(link)
+                }
+            } else {
+                n.renderInnerHTML(args, into: &buffer)
             }
-          }
+        } else {
+            let link = n.escapedAttr
+            if let safeLink = safeUrl(url: link, defaultScheme: "https", defaultHost: host) {
+                buffer.append(
+                    "<a href=\"\(safeLink)\" target=\"_blank\" rel=\"nofollow external noopener noreferrer\">"
+                )
+                n.renderInnerHTML(args, into: &buffer)
+                buffer.append("</a>")
+            } else {
+                n.renderInnerHTML(args, into: &buffer)
+            }
         }
-      }
-      if valid {
-        buffer.append("<span style=\"color: \(n.attr);\">")
-        n.renderInnerHTML(args, into: &buffer)
-        buffer.append("</span>")
-      } else {
-        buffer.append("[color=\(n.escapedAttr)]")
-        n.renderInnerHTML(args, into: &buffer)
-        buffer.append("[/color]")
-      }
-    }
-  case .size:
-    if n.attr.isEmpty {
-      buffer.append("<span>")
-      n.renderInnerHTML(args, into: &buffer)
-      buffer.append("</span>")
-    } else {
-      if let style = fontSizeStyle(from: n.attr) {
-        buffer.append("<span style=\"font-size: \(style);\">")
-        n.renderInnerHTML(args, into: &buffer)
-        buffer.append("</span>")
-      } else {
-        buffer.append("[size=\(n.escapedAttr)]")
-        n.renderInnerHTML(args, into: &buffer)
-        buffer.append("[/size]")
-      }
-    }
-  case .mask:
-    buffer.append("<span class=\"mask\">")
-    n.renderInnerHTML(args, into: &buffer)
-    buffer.append("</span>")
-  case .ruby:
-    if n.attr.isEmpty {
-      n.renderInnerHTML(args, into: &buffer)
-    } else {
-      buffer.append("<ruby>")
-      n.renderInnerHTML(args, into: &buffer)
-      buffer.append("<rp>(</rp><rt>\(n.escapedAttr)</rt><rp>)</rp></ruby>")
-    }
-  default:
 
-    if n.children.isEmpty {
-      let startLabel: String
-      if n.attr.isEmpty {
-        startLabel = "[\(n.tag.label)]"
-      } else {
-        startLabel = "[\(n.tag.label)=\(n.attr)]"
-      }
-      buffer.append("[\(startLabel)]\(n.value)[/\(n.tag.label)]")
-    } else {
-      var html: String = ""
-      for child in n.children {
-        html.append(child.renderInnerPlain())
-      }
-      buffer.append(html)
+    case .image:
+        let host = args["host"]
+        var content = ""
+        n.renderInnerHTML(args, into: &content)
+        if let url = safeUrl(url: content, defaultScheme: "https", defaultHost: host) {
+            if n.attr.isEmpty {
+                buffer.append(
+                    "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" />"
+                )
+            } else {
+                let values = n.attr.components(separatedBy: ",")
+                if values.count == 2, let width = UInt(values[0]), let height = UInt(values[1]) {
+                    buffer.append(
+                        "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\" width=\"\(width)\" height=\"\(height)\" />"
+                    )
+                } else {
+                    buffer.append(
+                        "<img src=\"\(url)\" rel=\"noreferrer\" referrerpolicy=\"no-referrer\" alt=\"\(n.escapedAttr)\" />"
+                    )
+
+                }
+            }
+        } else {
+            buffer.append(content)
+        }
+
+    case .bold:
+        buffer.append("<strong>")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</strong>")
+    case .italic:
+        buffer.append("<em>")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</em>")
+    case .font:
+        if n.attr.isEmpty {
+            n.renderInnerHTML(args, into: &buffer)
+        } else {
+            buffer.append("<span style=\"font-family: \(n.escapedAttr);\">")
+            n.renderInnerHTML(args, into: &buffer)
+            buffer.append("</span>")
+        }
+    case .underline:
+        buffer.append("<u>")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</u>")
+    case .strikethrough:
+        buffer.append("<del>")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</del>")
+    case .color:
+        if n.attr.isEmpty {
+            buffer.append("<span style=\"color: black;\">")
+            n.renderInnerHTML(args, into: &buffer)
+            buffer.append("</span>")
+        } else {
+            var valid = false
+            if [
+                "black", "green", "silver", "gray", "olive", "white", "yellow", "orange", "maroon",
+                "navy", "red", "blue", "purple", "teal", "fuchsia", "aqua", "violet", "pink",
+                "lime",
+                "magenta", "brown",
+            ].contains(n.attr) {
+                valid = true
+            } else {
+                if n.attr.unicodeScalars.count == 4 || n.attr.unicodeScalars.count == 7 {
+                    var g = n.attr.unicodeScalars.makeIterator()
+                    if g.next() == "#" {
+                        while let c = g.next() {
+                            if (c >= UnicodeScalar("0") && c <= UnicodeScalar("9"))
+                                || (c >= UnicodeScalar("a") && c <= UnicodeScalar("f"))
+                                || (c >= UnicodeScalar("A") && c <= UnicodeScalar("F"))
+                            {
+                                valid = true
+                            } else {
+                                valid = false
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            if valid {
+                buffer.append("<span style=\"color: \(n.attr);\">")
+                n.renderInnerHTML(args, into: &buffer)
+                buffer.append("</span>")
+            } else {
+                buffer.append("[color=\(n.escapedAttr)]")
+                n.renderInnerHTML(args, into: &buffer)
+                buffer.append("[/color]")
+            }
+        }
+    case .size:
+        if n.attr.isEmpty {
+            buffer.append("<span>")
+            n.renderInnerHTML(args, into: &buffer)
+            buffer.append("</span>")
+        } else {
+            if let style = fontSizeStyle(from: n.attr) {
+                buffer.append("<span style=\"font-size: \(style);\">")
+                n.renderInnerHTML(args, into: &buffer)
+                buffer.append("</span>")
+            } else {
+                buffer.append("[size=\(n.escapedAttr)]")
+                n.renderInnerHTML(args, into: &buffer)
+                buffer.append("[/size]")
+            }
+        }
+    case .mask:
+        buffer.append("<span class=\"mask\">")
+        n.renderInnerHTML(args, into: &buffer)
+        buffer.append("</span>")
+    case .ruby:
+        if n.attr.isEmpty {
+            n.renderInnerHTML(args, into: &buffer)
+        } else {
+            buffer.append("<ruby>")
+            n.renderInnerHTML(args, into: &buffer)
+            buffer.append("<rp>(</rp><rt>\(n.escapedAttr)</rt><rp>)</rp></ruby>")
+        }
+    default:
+
+        if n.children.isEmpty {
+            let startLabel: String
+            if n.attr.isEmpty {
+                startLabel = "[\(n.tag.label)]"
+            } else {
+                startLabel = "[\(n.tag.label)=\(n.attr)]"
+            }
+            buffer.append("[\(startLabel)]\(n.value)[/\(n.tag.label)]")
+        } else {
+            var html: String = ""
+            for child in n.children {
+                html.append(child.renderInnerPlain())
+            }
+            buffer.append(html)
+        }
     }
-  }
 
 }
 
 extension BBNode {
-  static private let htmlEntities: [Unicode.Scalar: String] = [
-    "\"": "&quot;",
-    "&": "&amp;",
-    "'": "&#39;",
-    "<": "&lt;",
-    ">": "&gt;",
-  ]
+    static private let htmlEntities: [Unicode.Scalar: String] = [
+        "\"": "&quot;",
+        "&": "&amp;",
+        "'": "&#39;",
+        "<": "&lt;",
+        ">": "&gt;",
+    ]
 
-  static private func stringByEncodingHTML(from text: String) -> String {
-    var result = ""
-    // 性能优化：预分配容量，减少字符串内存重分配
-    result.reserveCapacity(text.utf16.count * 2)
+    static private func stringByEncodingHTML(from text: String) -> String {
+        var result = ""
+        // 性能优化：预分配容量，减少字符串内存重分配
+        result.reserveCapacity(text.utf16.count * 2)
 
-    for scalar in text.unicodeScalars {
-      switch scalar {
-      // 1. 优先处理高频 HTML 实体转义
-      case let s where Self.htmlEntities.keys.contains(s):
-        result.append(Self.htmlEntities[s]!)
+        for scalar in text.unicodeScalars {
+            switch scalar {
+            // 1. 优先处理高频 HTML 实体转义
+            case let s where Self.htmlEntities.keys.contains(s):
+                result.append(Self.htmlEntities[s]!)
 
-      // 2. 处理 0x0000-0x0008 控制字符
-      case "\0"..<"\t":
-        result.append("&#x\(String(UInt32(scalar), radix: 16));")
+            // 2. 处理 0x0000-0x0008 控制字符
+            case "\0"..<"\t":
+                result.append("&#x\(String(UInt32(scalar), radix: 16));")
 
-      // 3. 处理 CJK 及全角字符范围 (直接保留)
-      // case "\u{3000}"..."\u{303F}",  // CJK 标点
-      //     "\u{3400}"..."\u{4DBF}",  // CJK 扩展 A
-      //     "\u{4E00}"..."\u{9FFF}",  // CJK 统一汉字
-      //     "\u{FF00}"..."\u{FFEF}",  // 全角字符
-      //     "\u{20000}"..."\u{2A6DF}",  // CJK 扩展 B
-      //     "\u{2A700}"..."\u{2B73F}",  // CJK 扩展 C
-      //     "\u{2B740}"..."\u{2B81F}",  // CJK 扩展 D
-      //     "\u{2B820}"..."\u{2CEAF}":  // CJK 扩展 E
-      //     result.append(Character(scalar))
+            // 3. 处理 CJK 及全角字符范围 (直接保留)
+            // case "\u{3000}"..."\u{303F}",  // CJK 标点
+            //     "\u{3400}"..."\u{4DBF}",  // CJK 扩展 A
+            //     "\u{4E00}"..."\u{9FFF}",  // CJK 统一汉字
+            //     "\u{FF00}"..."\u{FFEF}",  // 全角字符
+            //     "\u{20000}"..."\u{2A6DF}",  // CJK 扩展 B
+            //     "\u{2A700}"..."\u{2B73F}",  // CJK 扩展 C
+            //     "\u{2B740}"..."\u{2B81F}",  // CJK 扩展 D
+            //     "\u{2B820}"..."\u{2CEAF}":  // CJK 扩展 E
+            //     result.append(Character(scalar))
 
-      // 4. 处理 ASCII 0x7E (~) 以上的字符
-      case let s where s > "~":
-        result.append("&#\(UInt32(s));")
+            // 4. 处理 ASCII 0x7E (~) 以上的字符
+            case let s where s > "~":
+                result.append("&#\(UInt32(s));")
 
-      // 5. 普通 ASCII 字符，直接追加
-      default:
-        result.append(Character(scalar))
-      }
+            // 5. 普通 ASCII 字符，直接追加
+            default:
+                result.append(Character(scalar))
+            }
+        }
+
+        return result
     }
 
-    return result
-  }
-
-  var escapedValue: String {
-    return Self.stringByEncodingHTML(from: self.value)
-  }
-
-  var escapedAttr: String {
-    return Self.stringByEncodingHTML(from: self.attr)
-  }
-
-  func renderInnerHTML(_ args: [String: String], into buffer: inout String) {
-    for child in children {
-      defaultHTMLRender(child, args: args, into: &buffer)
+    var escapedValue: String {
+        return Self.stringByEncodingHTML(from: self.value)
     }
-  }
+
+    var escapedAttr: String {
+        return Self.stringByEncodingHTML(from: self.attr)
+    }
+
+    func renderInnerHTML(_ args: [String: String], into buffer: inout String) {
+        for child in children {
+            defaultHTMLRender(child, args: args, into: &buffer)
+        }
+    }
 }
 
 public func renderBBCodeToHTML(
-  _ bbcode: String,
-  using parser: BBParser = DefaultBBParser(),
-  tagManager: BBTagManager = DefaultBBTagManager(),
-  host: String? = nil,
+    _ bbcode: String,
+    using parser: BBParser = DefaultBBParser(),
+    tagManager: BBTagManager = DefaultBBTagManager(),
+    host: String? = nil,
 ) throws(BBError) -> String {
-  let domTree = try parser.parse(bbcode, BBParserContext(with: tagManager))
-  handleNewlineAndParagraph(node: domTree)
-  let args: [String: String]
-  if let host = host {
-    args = ["host": host]
-  } else {
-    args = [:]
-  }
-  var buffer = ""
-  buffer.reserveCapacity(bbcode.count * 4)  // 预估 HTML 长度，避免频繁扩容
-  defaultHTMLRender(domTree, args: args, into: &buffer)
-  return buffer
+    let domTree = try parser.parse(bbcode, BBParserContext(with: tagManager))
+    handleNewlineAndParagraph(node: domTree)
+    let args: [String: String]
+    if let host = host {
+        args = ["host": host]
+    } else {
+        args = [:]
+    }
+    var buffer = ""
+    buffer.reserveCapacity(bbcode.count * 4)  // 预估 HTML 长度，避免频繁扩容
+    defaultHTMLRender(domTree, args: args, into: &buffer)
+    return buffer
 }
 
 extension BBCode {
-  public func renderToHTML(_ bbcode: String, host: String? = nil) throws(BBError) -> String {
-    return try renderBBCodeToHTML(bbcode, using: parser, tagManager: tagManager, host: host)
-  }
+    public func renderToHTML(_ bbcode: String, host: String? = nil) throws(BBError) -> String {
+        return try renderBBCodeToHTML(bbcode, using: parser, tagManager: tagManager, host: host)
+    }
 }
