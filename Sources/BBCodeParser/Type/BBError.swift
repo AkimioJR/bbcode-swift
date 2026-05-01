@@ -1,7 +1,7 @@
 import Foundation
 
 /// 错误上下文，携带精准的位置和节点源码信息
-public struct BBErrorContext {
+public struct BBErrorContext: Sendable, Hashable {
     public let line: UInt
     public let column: UInt
     public let nodeDetail: String  // 发生错误时的节点片段内容
