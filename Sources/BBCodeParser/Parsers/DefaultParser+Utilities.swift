@@ -1,4 +1,12 @@
 extension DefaultBBParser {
+    // 辅助构建上下文的闭包，减少重复代码
+    func makeContext(g: BBScanner, ctx: BBParserContext) -> BBErrorContext {
+        return BBErrorContext(
+            line: g.line,
+            column: g.column,
+            nodeDetail: unclosedTagDetail(unclosedNode: ctx.currentNode)
+        )
+    }
 
     func restoreNodeToPlain(node: BBNode, c: UnicodeScalar, ctx: BBParserContext) {
         node.resetPlain()
