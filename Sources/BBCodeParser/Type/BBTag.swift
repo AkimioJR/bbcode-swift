@@ -71,37 +71,6 @@ public enum BBTag: String, Sendable, Hashable {
         }
     }
 
-    /// 标签描述（用于错误提示等场景）
-    public var description: String {
-        switch self {
-        case .unknown: return "unknown"
-        case .root: return "root"
-        case .plain: return "plain"
-        case .br: return "br"
-        case .paragraphStart: return "paragraphStart"
-        case .paragraphEnd: return "paragraphEnd"
-        case .center: return "center"
-        case .left: return "left"
-        case .right: return "right"
-        case .align: return "align"
-        case .quote: return "quote"
-        case .code: return "code"
-        case .url: return "url"
-        case .image: return "image"
-        case .bold: return "bold"
-        case .italic: return "italic"
-        case .font: return "font"
-        case .underline: return "underline"
-        case .strikethrough: return "strikethrough"
-        case .color: return "color"
-        case .size: return "size"
-        case .mask: return "mask"
-        case .ruby: return "ruby"
-        case .list: return "list"
-        case .listitem: return "listitem"
-        }
-    }
-
     /// 是否自闭合（不需要 [/xxx] 结尾）
     /// ** 虚拟标签无效 **
     public var isSelfClosing: Bool {
@@ -166,5 +135,25 @@ public enum BBTag: String, Sendable, Hashable {
 
     static public func parseByString(_ label: String) -> Self {
         return Self(rawValue: label.lowercased()) ?? .unknown
+    }
+}
+
+// MARK: - 打印与调试优化
+extension BBTag: CustomStringConvertible, CustomDebugStringConvertible {
+
+    /// 标签描述（用于面向用户的错误提示、普通日志等场景）
+    /// 例如：.image 返回 "image"，.paragraphStart 返回 "paragraphStart"
+    public var description: String {
+        return String(describing: self)
+    }
+
+    /// 开发者调试打印（控制台 print / LLDB po 专用）
+    /// 包含了 case 名称、是否为虚拟节点、以及真实的原始字符
+    public var debugDescription: String {
+        if Self.virtualTags.contains(self) {
+            return "[Virtual Tag: \(self)]"
+        } else {
+            return "[BBTag: \(self) | raw: '\(rawValue)']"
+        }
     }
 }
