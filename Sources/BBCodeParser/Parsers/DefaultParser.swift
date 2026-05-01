@@ -14,7 +14,7 @@ public class DefaultBBParser {
 
   /// 解析普通内容
   func parseContent(
-    _ g: inout String.UnicodeScalarView.Iterator,
+    _ g: inout BBScanner,
     _ ctx: BBParserContext,
   ) throws(BBError) -> ParserState {
     var newNode = BBNode(
@@ -46,7 +46,10 @@ public class DefaultBBParser {
             newNode.value.append(Character(c))
           } else {
             Logger.parser.error("unclosed tag: \(ctx.currentNode.tag.description)")
-            throw BBError.unclosedTag(unclosedTagDetail(unclosedNode: ctx.currentNode))
+            throw .unclosedTag(
+              tag: ctx.currentNode.tag,
+              context: makeContext(g: g, ctx: ctx)
+            )
           }
         }
       } else {
@@ -84,7 +87,7 @@ public class DefaultBBParser {
 
   /// 解析标签内容
   private func parseTag(
-    _ g: inout String.UnicodeScalarView.Iterator,
+    _ g: inout BBScanner,
     _ ctx: BBParserContext,
   ) throws(BBError) -> ParserState {
     //<opening_tag> ::= <opening_tag_1> | <opening_tag_2>
@@ -165,13 +168,15 @@ public class DefaultBBParser {
     }
 
     Logger.parser.error("unfinished opening tag: \(ctx.currentNode.tag.description)")
-    throw BBError.unfinishedOpeningTag(
-      unclosedTagDetail(unclosedNode: ctx.currentNode))
+    throw .unfinishedOpeningTag(
+      tag: ctx.currentNode.tag,
+      context: makeContext(g: g, ctx: ctx)
+    )
   }
 
   /// 解析闭合标签
   private func parseTagClosing(
-    _ g: inout String.UnicodeScalarView.Iterator,
+    _ g: inout BBScanner,
     _ ctx: BBParserContext,
   ) throws(BBError) -> ParserState {
     var tagName: String = ""
@@ -223,12 +228,15 @@ public class DefaultBBParser {
     }
 
     Logger.parser.error("unfinished closing tag: \(ctx.currentNode.tag.description)")
-    throw .unfinishedClosingTag(unclosedTagDetail(unclosedNode: ctx.currentNode))
+    throw .unfinishedClosingTag(
+      tag: ctx.currentNode.tag,
+      context: makeContext(g: g, ctx: ctx)
+    )
   }
 
   /// 解析属性
   private func parseAttr(
-    _ g: inout String.UnicodeScalarView.Iterator,
+    _ g: inout BBScanner,
     _ ctx: BBParserContext,
   ) throws(BBError) -> ParserState {
     while let c = g.next() {
@@ -236,7 +244,10 @@ public class DefaultBBParser {
         return .content
       } else if c == UnicodeScalar("\n") || c == UnicodeScalar("\r") {
         Logger.parser.error("unfinished attr: \(ctx.currentNode.tag.description)")
-        throw .unfinishedAttr(unclosedTagDetail(unclosedNode: ctx.currentNode))
+        throw .unfinishedAttr(
+          tag: ctx.currentNode.tag,
+          context: makeContext(g: g, ctx: ctx)
+        )
       } else {
         ctx.currentNode.attr.append(Character(c))
       }
@@ -244,14 +255,17 @@ public class DefaultBBParser {
 
     //unfinished attr
     Logger.parser.error("unfinished attr: \(ctx.currentNode.tag.description)")
-    throw BBError.unfinishedAttr(unclosedTagDetail(unclosedNode: ctx.currentNode))
+    throw .unfinishedAttr(
+      tag: ctx.currentNode.tag,
+      context: makeContext(g: g, ctx: ctx)
+    )
   }
 
 }
 
 extension DefaultBBParser: BBParser {
   public func parse(_ bbcode: String, _ ctx: BBParserContext) throws(BBError) -> BBNode {
-    var g = bbcode.unicodeScalars.makeIterator()
+    var g = BBScanner(bbcode)
 
     var state: ParserState = .content
     repeat {
