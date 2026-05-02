@@ -235,40 +235,118 @@ extension BBNode {
         ">": "&gt;",
     ]
 
+    static private func isValidHTMLEntity(startingAt index: String.Index, in text: String) -> Bool {
+        // 检测是否为有效的 HTML 实体
+        // 格式：&name; 或 &#123; 或 &#xABC;
+        guard index < text.endIndex else { return false }
+
+        let afterAmpersand = text.index(after: index)
+        guard afterAmpersand < text.endIndex else { return false }
+
+        let firstChar = text[afterAmpersand]
+
+        switch firstChar {
+        case "#":
+            // 数字实体：&#123; 或 &#xABC;
+            let afterHash = text.index(after: afterAmpersand)
+            guard afterHash < text.endIndex else { return false }
+
+            let secondChar = text[afterHash]
+            var checkIndex = afterHash
+
+            switch secondChar {
+            case "x", "X":
+                // 16进制：&#xABC;
+                checkIndex = text.index(after: checkIndex)
+                while checkIndex < text.endIndex && text[checkIndex] != ";" {
+                    let c = text[checkIndex]
+                    if !((c >= "0" && c <= "9") || (c >= "a" && c <= "f") || (c >= "A" && c <= "F"))
+                    {
+                        return false
+                    }
+                    checkIndex = text.index(after: checkIndex)
+                }
+                return checkIndex < text.endIndex && text[checkIndex] == ";"
+
+            default:
+                // 10进制：&#123;
+                while checkIndex < text.endIndex && text[checkIndex] != ";" {
+                    let c = text[checkIndex]
+                    if !(c >= "0" && c <= "9") {
+                        return false
+                    }
+                    checkIndex = text.index(after: checkIndex)
+                }
+                return checkIndex < text.endIndex && text[checkIndex] == ";"
+            }
+
+        default:
+            // 命名实体：&name;
+            var checkIndex = afterAmpersand
+            var nameLength = 0
+            while checkIndex < text.endIndex && text[checkIndex] != ";" && nameLength < 32 {
+                let c = text[checkIndex]
+                if !((c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9")) {
+                    return false
+                }
+                checkIndex = text.index(after: checkIndex)
+                nameLength += 1
+            }
+            return checkIndex < text.endIndex && text[checkIndex] == ";" && nameLength > 0
+        }
+    }
+
     static private func stringByEncodingHTML(from text: String) -> String {
         var result = ""
         // 性能优化：预分配容量，减少字符串内存重分配
         result.reserveCapacity(text.utf16.count * 2)
 
-        for scalar in text.unicodeScalars {
+        var index = text.startIndex
+        while index < text.endIndex {
+            let scalar = text.unicodeScalars[index]
+
             switch scalar {
-            // 1. 优先处理高频 HTML 实体转义
+            // 1. 优先处理 & 符号：检查是否为已转义的 HTML 实体
+            case "&":
+                if isValidHTMLEntity(startingAt: index, in: text) {
+                    // 这是一个有效的 HTML 实体，直接保留
+                    result.append("&")
+                } else {
+                    // 不是实体，需要转义
+                    result.append("&amp;")
+                }
+                index = text.index(after: index)
+                continue
+
+            // 2. 处理其他高频 HTML 实体
             case let s where Self.htmlEntities.keys.contains(s):
                 result.append(Self.htmlEntities[s]!)
 
-            // 2. 处理 0x0000-0x0008 控制字符
+            // 3. 处理 0x0000-0x0008 控制字符
             case "\0"..<"\t":
                 result.append("&#x\(String(UInt32(scalar), radix: 16));")
 
-            // 3. 处理 CJK 及全角字符范围 (直接保留)
-            // case "\u{3000}"..."\u{303F}",  // CJK 标点
-            //     "\u{3400}"..."\u{4DBF}",  // CJK 扩展 A
-            //     "\u{4E00}"..."\u{9FFF}",  // CJK 统一汉字
-            //     "\u{FF00}"..."\u{FFEF}",  // 全角字符
-            //     "\u{20000}"..."\u{2A6DF}",  // CJK 扩展 B
-            //     "\u{2A700}"..."\u{2B73F}",  // CJK 扩展 C
-            //     "\u{2B740}"..."\u{2B81F}",  // CJK 扩展 D
-            //     "\u{2B820}"..."\u{2CEAF}":  // CJK 扩展 E
-            //     result.append(Character(scalar))
+            // 4. 处理 CJK 及全角字符范围 (直接保留)
+            case "\u{3000}"..."\u{303F}",  // CJK 标点
+                "\u{3400}"..."\u{4DBF}",  // CJK 扩展 A
+                "\u{4E00}"..."\u{9FFF}",  // CJK 统一汉字
+                "\u{FF00}"..."\u{FFEF}",  // 全角字符
+                "\u{20000}"..."\u{2A6DF}",  // CJK 扩展 B
+                "\u{2A700}"..."\u{2B73F}",  // CJK 扩展 C
+                "\u{2B740}"..."\u{2B81F}",  // CJK 扩展 D
+                "\u{2B820}"..."\u{2CEAF}":  // CJK 扩展 E
+                result.append(Character(scalar))
 
-            // 4. 处理 ASCII 0x7E (~) 以上的字符
+            // 5. 处理 ASCII 0x7E (~) 以上的字符
             case let s where s > "~":
                 result.append("&#\(UInt32(s));")
 
-            // 5. 普通 ASCII 字符，直接追加
+            // 6. 普通 ASCII 字符，直接追加
             default:
                 result.append(Character(scalar))
             }
+
+            index = text.index(after: index)
         }
 
         return result
