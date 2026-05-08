@@ -17,11 +17,15 @@ public struct DefaultHTMLRenderArgs {
 ) {
     switch n.tag {
     case .plain:
-        // Keep code block content escaped, but allow native HTML passthrough in regular plain text.
-        if n.parent?.tag == .code {
+        if args.allowRawHTML {  // 允许原始 HTML 时，直接输出文本内容，不进行转义
+            // 如果父节点是 code 标签，则不允许 HTML 转义，以保留代码中的特殊字符
+            if n.parent?.tag == .code {
+                buffer.append(n.escapedValue)
+            } else {
+                buffer.append(n.escapedHTMLValue)
+            }
+        } else {  // 默认行为，转义 HTML 实体
             buffer.append(n.escapedValue)
-        } else {
-            buffer.append(n.escapedHTMLValue)
         }
     case .br:
         buffer.append("<br>")
