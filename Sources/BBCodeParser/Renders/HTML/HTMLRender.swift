@@ -1,8 +1,13 @@
 import Foundation
 
+public struct DefaultHTMLRenderArgs {
+    var host: String?
+    var allowRawHTML: Bool = false
+}
+
 @Sendable public func defaultHTMLRender(
     _ n: BBNode,
-    args: [String: String],
+    args: DefaultHTMLRenderArgs,
     into buffer: inout String,
 ) {
     switch n.tag {
@@ -61,7 +66,7 @@ import Foundation
         buffer.append("</blockquote></div>")
 
     case .url:
-        let host = args["host"]
+        let host = args.host
         if n.attr.isEmpty {
             let isPlain = n.children.allSatisfy { $0.tag == .plain }
             if isPlain {
@@ -91,7 +96,7 @@ import Foundation
         }
 
     case .image:
-        let host = args["host"]
+        let host = args.host
         var content = ""
         n.renderInnerHTML(args, into: &content)
         if let url = safeUrl(url: content, defaultScheme: "https", defaultHost: host) {
@@ -253,7 +258,9 @@ extension BBNode {
             || scalar == "-"
     }
 
-    static private func htmlTagEndIndex(startingAt index: String.Index, in text: String) -> String.Index? {
+    static private func htmlTagEndIndex(startingAt index: String.Index, in text: String) -> String
+        .Index?
+    {
         guard index < text.endIndex, text[index] == "<" else { return nil }
 
         var cursor = text.index(after: index)
@@ -460,7 +467,7 @@ extension BBNode {
         return Self.stringByEncodingHTML(from: self.attr)
     }
 
-    func renderInnerHTML(_ args: [String: String], into buffer: inout String) {
+    func renderInnerHTML(_ args: DefaultHTMLRenderArgs, into buffer: inout String) {
         for child in children {
             defaultHTMLRender(child, args: args, into: &buffer)
         }
@@ -475,12 +482,7 @@ public func renderBBCodeToHTML(
 ) throws(BBError) -> String {
     let domTree = try parser.parse(bbcode, BBParserContext(with: tagManager))
     handleNewlineAndParagraph(node: domTree)
-    let args: [String: String]
-    if let host = host {
-        args = ["host": host]
-    } else {
-        args = [:]
-    }
+    let args = DefaultHTMLRenderArgs(host: host, allowRawHTML: false)
     var buffer = ""
     buffer.reserveCapacity(bbcode.count * 4)  // 预估 HTML 长度，避免频繁扩容
     defaultHTMLRender(domTree, args: args, into: &buffer)

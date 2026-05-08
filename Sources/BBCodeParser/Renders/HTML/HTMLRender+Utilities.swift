@@ -73,7 +73,11 @@ enum HTMLAlignment: String {
         }
     }
 
-    func renderHTMLAlignment(_ inner: BBNode, args: [String: String], into buffer: inout String) {
+    func renderHTMLAlignment(
+        _ inner: BBNode,
+        args: DefaultHTMLRenderArgs,
+        into buffer: inout String
+    ) {
         buffer.append("<p style=\"text-align: \(self.rawValue);\">")
         inner.renderInnerHTML(args, into: &buffer)
         buffer.append("</p>")
