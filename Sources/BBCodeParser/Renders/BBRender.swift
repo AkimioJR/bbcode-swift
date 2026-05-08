@@ -1,13 +1,13 @@
-public typealias BBRender<K: Hashable, V, R> = @Sendable (BBNode, [K: V]) -> R
+public typealias BBRender<T, R> = @Sendable (BBNode, T?) -> R
 
 extension BBCode {
-    public func render<K: Hashable, V, R>(
+    public func render<Args, Output>(
         _ bbcode: String,
         using parser: BBParser = DefaultBBParser(),
         tagManager: BBTagManager = DefaultBBTagManager(),
-        renderer: BBRender<K, V, R>,
-        args: [K: V] = [:],
-    ) throws(BBError) -> R {
+        renderer: BBRender<Args, Output>,
+        args: Args? = nil,
+    ) throws(BBError) -> Output {
         let domTree = try parser.parse(bbcode, BBParserContext(with: tagManager))
         handleNewlineAndParagraph(node: domTree)
         return renderer(domTree, args)
