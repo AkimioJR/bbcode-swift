@@ -7,7 +7,12 @@ import Foundation
 ) {
     switch n.tag {
     case .plain:
-        buffer.append(n.escapedValue)
+        // Keep code block content escaped, but allow native HTML passthrough in regular plain text.
+        if n.parent?.tag == .code {
+            buffer.append(n.escapedValue)
+        } else {
+            buffer.append(n.escapedHTMLValue)
+        }
     case .br:
         buffer.append("<br>")
     case .paragraphStart:
@@ -235,6 +240,85 @@ extension BBNode {
         ">": "&gt;",
     ]
 
+    static private func isASCIILetter(_ scalar: Unicode.Scalar) -> Bool {
+        return (scalar >= "a" && scalar <= "z") || (scalar >= "A" && scalar <= "Z")
+    }
+
+    static private func isASCIIDigit(_ scalar: Unicode.Scalar) -> Bool {
+        return scalar >= "0" && scalar <= "9"
+    }
+
+    static private func isHTMLTagNameCharacter(_ scalar: Unicode.Scalar) -> Bool {
+        return isASCIILetter(scalar) || isASCIIDigit(scalar) || scalar == ":" || scalar == "_"
+            || scalar == "-"
+    }
+
+    static private func htmlTagEndIndex(startingAt index: String.Index, in text: String) -> String.Index? {
+        guard index < text.endIndex, text[index] == "<" else { return nil }
+
+        var cursor = text.index(after: index)
+        guard cursor < text.endIndex else { return nil }
+
+        if text[cursor] == "!" {
+            let tail = text[cursor...]
+            if tail.hasPrefix("!--") {
+                let commentStart = text.index(cursor, offsetBy: 3)
+                guard
+                    let commentEnd = text.range(
+                        of: "-->",
+                        range: commentStart..<text.endIndex
+                    )?.upperBound
+                else {
+                    return nil
+                }
+                return commentEnd
+            }
+        }
+
+        if text[cursor] == "/" {
+            cursor = text.index(after: cursor)
+            guard cursor < text.endIndex else { return nil }
+        }
+
+        let first = text[cursor]
+        guard let firstScalar = first.unicodeScalars.first, first.unicodeScalars.count == 1 else {
+            return nil
+        }
+        guard isASCIILetter(firstScalar) else { return nil }
+
+        cursor = text.index(after: cursor)
+        while cursor < text.endIndex {
+            let ch = text[cursor]
+            guard let scalar = ch.unicodeScalars.first, ch.unicodeScalars.count == 1 else {
+                break
+            }
+            if isHTMLTagNameCharacter(scalar) {
+                cursor = text.index(after: cursor)
+            } else {
+                break
+            }
+        }
+
+        var quote: Character? = nil
+        while cursor < text.endIndex {
+            let ch = text[cursor]
+            if let currentQuote = quote {
+                if ch == currentQuote {
+                    quote = nil
+                }
+            } else {
+                if ch == "\"" || ch == "'" {
+                    quote = ch
+                } else if ch == ">" {
+                    return text.index(after: cursor)
+                }
+            }
+            cursor = text.index(after: cursor)
+        }
+
+        return nil
+    }
+
     static private func isValidHTMLEntity(startingAt index: String.Index, in text: String) -> Bool {
         // 检测是否为有效的 HTML 实体
         // 格式：&name; 或 &#123; 或 &#xABC;
@@ -296,7 +380,9 @@ extension BBNode {
         }
     }
 
-    static private func stringByEncodingHTML(from text: String) -> String {
+    static private func stringByEncodingHTML(from text: String, allowingRawHTMLTags: Bool = false)
+        -> String
+    {
         var result = ""
         // 性能优化：预分配容量，减少字符串内存重分配
         result.reserveCapacity(text.utf16.count * 2)
@@ -315,6 +401,16 @@ extension BBNode {
                     // 不是实体，需要转义
                     result.append("&amp;")
                 }
+                index = text.index(after: index)
+                continue
+
+            case "<" where allowingRawHTMLTags:
+                if let endIndex = htmlTagEndIndex(startingAt: index, in: text) {
+                    result.append(contentsOf: text[index..<endIndex])
+                    index = endIndex
+                    continue
+                }
+                result.append("&lt;")
                 index = text.index(after: index)
                 continue
 
@@ -354,6 +450,10 @@ extension BBNode {
 
     var escapedValue: String {
         return Self.stringByEncodingHTML(from: self.value)
+    }
+
+    var escapedHTMLValue: String {
+        return Self.stringByEncodingHTML(from: self.value, allowingRawHTMLTags: true)
     }
 
     var escapedAttr: String {
