@@ -349,4 +349,72 @@ class HTMLTests: XCTestCase {
             """
         )
     }
+
+    func testIndentedMultilineRawHTMLBlockWhenAllowRawHTMLEnabled() {
+        // allowRawHTML 为 true 时，多行与缩进的原生 HTML 应保持标签结构，换行转换为 <br>
+        XCTAssertEqual(
+            try renderBBCodeToHTML(
+                """
+                <div class="embed">
+                    <p>第一行</p>
+                    <p>第二行</p>
+                </div>
+                """
+            ),
+            """
+            <div class="embed"><br>    <p>第一行</p><br>    <p>第二行</p><br></div>
+            """
+        )
+    }
+
+    func testIndentedMultilineRawHTMLBlockWhenAllowRawHTMLDisabled() {
+        // allowRawHTML 为 false 时，多行与缩进的原生 HTML 标签应被转义，换行仍转换为 <br>
+        XCTAssertEqual(
+            try renderBBCodeToHTML(
+                """
+                <div class="embed">
+                    <p>第一行</p>
+                    <p>第二行</p>
+                </div>
+                """,
+                args: DefaultHTMLRenderArgs(allowRawHTML: false)
+            ),
+            """
+            &lt;div class=&quot;embed&quot;&gt;<br>    &lt;p&gt;第一行&lt;/p&gt;<br>    &lt;p&gt;第二行&lt;/p&gt;<br>&lt;/div&gt;
+            """
+        )
+    }
+
+    func testIndentedRawHTMLInsideAlignWhenAllowRawHTMLEnabled() {
+        // 在 BBCode 容器中插入带缩进的原生 HTML，allowRawHTML=true 时应透传
+        XCTAssertEqual(
+            try renderBBCodeToHTML(
+                """
+                [align=center]
+                    <img src="https://example.com/a.png" width="100" />
+                [/align]
+                """
+            ),
+            """
+            <p style="text-align: center;">    <img src="https://example.com/a.png" width="100" /></p>
+            """
+        )
+    }
+
+    func testIndentedRawHTMLInsideAlignWhenAllowRawHTMLDisabled() {
+        // 在 BBCode 容器中插入带缩进的原生 HTML，allowRawHTML=false 时应转义
+        XCTAssertEqual(
+            try renderBBCodeToHTML(
+                """
+                [align=center]
+                    <img src="https://example.com/a.png" width="100" />
+                [/align]
+                """,
+                args: DefaultHTMLRenderArgs(allowRawHTML: false)
+            ),
+            """
+            <p style="text-align: center;">    &lt;img src=&quot;https://example.com/a.png&quot; width=&quot;100&quot; /&gt;</p>
+            """
+        )
+    }
 }
