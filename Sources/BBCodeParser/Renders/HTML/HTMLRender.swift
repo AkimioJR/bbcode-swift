@@ -2,7 +2,12 @@ import Foundation
 
 public struct DefaultHTMLRenderArgs {
     var host: String?
-    var allowRawHTML: Bool = false
+    var allowRawHTML: Bool
+
+    public init(host: String? = nil, allowRawHTML: Bool = false) {
+        self.host = host
+        self.allowRawHTML = allowRawHTML
+    }
 }
 
 @Sendable public func defaultHTMLRender(
@@ -478,11 +483,10 @@ public func renderBBCodeToHTML(
     _ bbcode: String,
     using parser: BBParser = DefaultBBParser(),
     tagManager: BBTagManager = DefaultBBTagManager(),
-    host: String? = nil,
+    args: DefaultHTMLRenderArgs = DefaultHTMLRenderArgs(),
 ) throws(BBError) -> String {
     let domTree = try parser.parse(bbcode, BBParserContext(with: tagManager))
     handleNewlineAndParagraph(node: domTree)
-    let args = DefaultHTMLRenderArgs(host: host, allowRawHTML: false)
     var buffer = ""
     buffer.reserveCapacity(bbcode.count * 4)  // 预估 HTML 长度，避免频繁扩容
     defaultHTMLRender(domTree, args: args, into: &buffer)
@@ -491,6 +495,11 @@ public func renderBBCodeToHTML(
 
 extension BBCode {
     public func renderToHTML(_ bbcode: String, host: String? = nil) throws(BBError) -> String {
-        return try renderBBCodeToHTML(bbcode, using: parser, tagManager: tagManager, host: host)
+        return try renderBBCodeToHTML(
+            bbcode,
+            using: parser,
+            tagManager: tagManager,
+            args: DefaultHTMLRenderArgs(),
+        )
     }
 }
