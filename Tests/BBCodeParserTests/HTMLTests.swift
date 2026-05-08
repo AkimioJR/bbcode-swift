@@ -262,4 +262,47 @@ class HTMLTests: XCTestCase {
             "This &amp; That &gt; More &lt; Less"
         )
     }
+    func testHTMLInBBCode1() {
+        // 测试输入中包含 HTML 标签 - 应该被正确转义而不是直接渲染
+        XCTAssertEqual(
+            try renderBBCodeToHTML(
+                """
+                <iframe width="100%" height="495" src="//player.bilibili.com/player.html?isOutside=true&amp;aid=113990931845617&amp;bvid=BV1BSKLejESd&amp;cid=28355461245&amp;p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+                """
+            ),
+            """
+            <iframe width="100%" height="495" src="//player.bilibili.com/player.html?isOutside=true&amp;aid=113990931845617&amp;bvid=BV1BSKLejESd&amp;cid=28355461245&amp;p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+            """
+        )
+    }
+    func testHTMLInBBCode2() {
+        // 测试输入中包含 HTML 标签 - 应该被正确转义而不是直接渲染
+        XCTAssertEqual(
+            try renderBBCodeToHTML(
+                """
+                [align=center]<iframe width="100%" height="495" src="//player.bilibili.com/player.html?isOutside=true&amp;aid=113990931845617&amp;bvid=BV1BSKLejESd&amp;cid=28355461245&amp;p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>[/align]
+                [align=center]APP端请[url=https://www.bilibili.com/video/BV1BSKLejESd/?spm_id_from=333.999.0.0]点击此处[/url]跳转观看[/align]
+                期望越大，失望越大！
+                留给谷川流用来偷懒的旧短篇已经所剩不多喽
+                """
+            ),
+            """
+            <p style="text-align: center;"><iframe width="100%" height="495" src="//player.bilibili.com/player.html?isOutside=true&amp;aid=113990931845617&amp;bvid=BV1BSKLejESd&amp;cid=28355461245&amp;p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe></p><p style="text-align: center;">APP端请<a href="https://www.bilibili.com/video/BV1BSKLejESd/?spm_id_from=333.999.0.0" target="_blank" rel="nofollow external noopener noreferrer">点击此处</a>跳转观看</p>期望越大，失望越大！<br>留给谷川流用来偷懒的旧短篇已经所剩不多喽
+            """
+        )
+    }
+    func testHTMLInBBCode3() {
+        // 测试输入中包含 HTML 标签 - 应该被正确转义而不是直接渲染
+        XCTAssertEqual(
+            try renderBBCodeToHTML(
+                """
+                第二卷的剧情马马虎虎，第三卷实在是看不懂前女友的行为，也是越来越抽象了，感觉所有行为都是党争驱动的<img src=\"https://static.lightnovel.fun/smiley/luck/ls17.GIF\" width=\"50\"/>而且又有学生加入了战场了，又来到了大家喜闻乐见的党政环境，已经没什么第一卷的背德感了，不过从第一卷的跟踪剧情就初见端倪了...<br>我还以为只是因为台版只出道了第三卷，又去搜了一下，似乎亚马逊上也只有三卷，而且还是24年7月更新的，作者到底在干什么，难不成真的没活了吧<img src=\"https://static.lightnovel.fun/smiley/luck/ls1.GIF\" width=\"50\"/>
+                """
+            ),
+            """
+            第二卷的剧情马马虎虎，第三卷实在是看不懂前女友的行为，也是越来越抽象了，感觉所有行为都是党争驱动的<img src=\"https://static.lightnovel.fun/smiley/luck/ls17.GIF\" width=\"50\"/>而且又有学生加入了战场了，又来到了大家喜闻乐见的党政环境，已经没什么第一卷的背德感了，不过从第一卷的跟踪剧情就初见端倪了...<br>我还以为只是因为台版只出道了第三卷，又去搜了一下，似乎亚马逊上也只有三卷，而且还是24年7月更新的，作者到底在干什么，难不成真的没活了吧<img src=\"https://static.lightnovel.fun/smiley/luck/ls1.GIF\" width=\"50\"/>
+            """
+        )
+    }
+
 }
