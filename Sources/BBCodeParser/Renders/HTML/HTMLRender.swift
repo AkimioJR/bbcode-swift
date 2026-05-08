@@ -4,7 +4,7 @@ public struct DefaultHTMLRenderArgs {
     var host: String?
     var allowRawHTML: Bool
 
-    public init(host: String? = nil, allowRawHTML: Bool = false) {
+    public init(host: String? = nil, allowRawHTML: Bool = true) {
         self.host = host
         self.allowRawHTML = allowRawHTML
     }
