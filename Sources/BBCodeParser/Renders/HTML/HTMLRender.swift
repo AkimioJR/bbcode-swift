@@ -1,8 +1,8 @@
 import Foundation
 
 public struct DefaultHTMLRenderArgs {
-    var host: String?
-    var allowRawHTML: Bool
+    let host: String?
+    let allowRawHTML: Bool
 
     public init(host: String? = nil, allowRawHTML: Bool = true) {
         self.host = host
