@@ -38,19 +38,23 @@ public enum BBTag: String, Sendable, Hashable {
 
     // static let unsupported: Set<Self> = [.background, .avatar, .float]
 
-    public static let virtualTags: Set<Self> = [
-        .unknown,
-        .root,
-        .plain,
-        .paragraphStart,
-        .paragraphEnd,
-    ]
+    public var isVirtualTags: Bool {
+        switch self {
+        case .unknown, .root, .plain, .paragraphStart, .paragraphEnd:
+            return true
+        default:
+            return false
+        }
+    }
     public static let layout: Set<Self> = [
         .center,
         .left,
         .right,
         .align,
     ]
+    public var isLayout: Bool {
+        return Self.layout.contains(self)
+    }
     public static let textStyle: Set<Self> = [
         .bold,
         .italic,
@@ -61,10 +65,13 @@ public enum BBTag: String, Sendable, Hashable {
         .size,
         .ruby,
     ]
+    public var isTextStyle: Bool {
+        return Self.textStyle.contains(self)
+    }
 
     /// 标签名称
     public var label: String {
-        if Self.virtualTags.contains(self) {
+        if self.isVirtualTags {
             return ""
         } else {
             return self.rawValue
@@ -150,7 +157,7 @@ extension BBTag: CustomStringConvertible, CustomDebugStringConvertible {
     /// 开发者调试打印（控制台 print / LLDB po 专用）
     /// 包含了 case 名称、是否为虚拟节点、以及真实的原始字符
     public var debugDescription: String {
-        if Self.virtualTags.contains(self) {
+        if self.isVirtualTags {
             return "[Virtual Tag: \(self)]"
         } else {
             return "[BBTag: \(self) | raw: '\(rawValue)']"

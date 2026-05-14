@@ -4,7 +4,7 @@ public class DefaultBBTagManager: BBTagManager {
 
     public func getTag(_ str: String) -> BBTag? {
         let tag = BBTag.parseByString(str)
-        if BBTag.virtualTags.contains(tag) {
+        if tag.isVirtualTags {
             return nil
         } else {
             return tag
