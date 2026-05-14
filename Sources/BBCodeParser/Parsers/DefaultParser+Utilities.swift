@@ -38,7 +38,7 @@ extension DefaultBBParser {
             return node.value
 
         default:
-            if !BBTag.virtualTags.contains(node.tag) && node.tag.isSelfClosing {
+            if !node.tag.isVirtualTags && node.tag.isSelfClosing {
                 return "[" + node.value + "]"
             } else {
                 var text: String =

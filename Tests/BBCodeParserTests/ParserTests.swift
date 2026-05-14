@@ -421,7 +421,7 @@ class ParserTests: XCTestCase {
         XCTAssertEqual(BBTag.root.label, "")
         XCTAssertEqual(BBTag.bold.label, "b")
 
-        XCTAssertTrue(BBTag.virtualTags.contains(.plain))
+        XCTAssertTrue(BBTag.plain.isVirtualTags)
         XCTAssertTrue(BBTag.layout.contains(.center))
         XCTAssertTrue(BBTag.textStyle.contains(.italic))
 
