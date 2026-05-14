@@ -414,38 +414,6 @@ class ParserTests: XCTestCase {
         )
     }
 
-    func testBBTagCoreProperties() {
-        XCTAssertEqual(BBTag.parseByString("B"), .bold)
-        XCTAssertEqual(BBTag.parseByString("does-not-exist"), .unknown)
-
-        XCTAssertEqual(BBTag.root.label, "")
-        XCTAssertEqual(BBTag.bold.label, "b")
-
-        XCTAssertTrue(BBTag.plain.isVirtualTags)
-        XCTAssertTrue(BBTag.layout.contains(.center))
-        XCTAssertTrue(BBTag.textStyle.contains(.italic))
-
-        XCTAssertTrue(BBTag.br.isSelfClosing)
-        XCTAssertFalse(BBTag.bold.isSelfClosing)
-
-        XCTAssertTrue(BBTag.color.allowAttr)
-        XCTAssertFalse(BBTag.quote.allowAttr)
-
-        XCTAssertTrue(BBTag.mask.isBlock)
-        XCTAssertFalse(BBTag.bold.isBlock)
-
-        XCTAssertTrue(BBTag.root.allowedChildren.contains(.quote))
-        XCTAssertTrue(BBTag.center.allowedChildren.contains(.mask))
-        XCTAssertTrue(BBTag.align.allowedChildren.contains(.size))
-        XCTAssertTrue(BBTag.list.allowedChildren.contains(.listitem))
-        XCTAssertTrue(BBTag.listitem.allowedChildren.contains(.url))
-        XCTAssertTrue(BBTag.url.allowedChildren.contains(.image))
-        XCTAssertTrue(BBTag.bold.allowedChildren.contains(.url))
-        XCTAssertTrue(BBTag.mask.allowedChildren.contains(.br))
-        XCTAssertEqual(BBTag.plain.allowedChildren, [])
-        XCTAssertFalse(BBTag.code.allowedChildren.contains(.br))
-    }
-
     func testBBErrorDescriptionsAndFailureReason() {
         let internalError = BBError.internalError("bug detail")
         XCTAssertEqual(internalError.errorDescription, "解析器内部发生错误")

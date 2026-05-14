@@ -111,35 +111,6 @@ public enum BBTag: Sendable, Hashable {
         }
     }
 
-    /// 允许的子标签
-    public var allowedChildren: Set<Self> {
-        switch self {
-        case .root:
-            return [
-                .plain, .br, .paragraphStart, .paragraphEnd, .mask, .quote, .code, .url, .image,
-                .list,
-            ]
-        case .center, .left, .right, .quote:
-            return [.br, .mask, .quote, .code, .url, .image]
-        case .align:
-            return [.br, .mask, .size, .quote, .code, .url, .image]
-        case .list:
-            return [.list, .listitem, .br, .url]
-        case .listitem:
-            return [.br, .url]
-        case .url:
-            return [.image, .br]
-        case .bold, .italic, .underline, .strikethrough, .color, .size, .font:
-            return [.br, .url, .image]
-        case .mask, .ruby:
-            return [.br]
-        case .plain, .br, .paragraphStart, .paragraphEnd, .code, .image, .unknown:
-            return []
-        // default:
-        //     return []
-        }
-    }
-
     static public func parseByString(_ label: String) -> Self {
         return Self(rawValue: label.lowercased()) ?? .unknown
     }
