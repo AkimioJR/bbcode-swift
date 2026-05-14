@@ -1,40 +1,40 @@
-public enum BBTag: String, Sendable, Hashable {
+public enum BBTag: Sendable, Hashable {
     /// 特殊标签（内部虚拟节点）
-    case unknown = "unknown"
-    case root = "root"
-    case plain = "plain"
-    case paragraphStart = "paragraphStart"
-    case paragraphEnd = "paragraphEnd"
+    case unknown
+    case root
+    case plain
+    case paragraphStart
+    case paragraphEnd
 
     /// 换行标签
-    case br = "br"
+    case br
 
     /// 布局标签
-    case center = "center"
-    case left = "left"
-    case right = "right"
-    case align = "align"
+    case center
+    case left
+    case right
+    case align
 
     /// 块级标签
-    case quote = "quote"
-    case code = "code"
-    case url = "url"
-    case image = "img"
+    case quote
+    case code
+    case url
+    case image
 
     /// 文本样式标签
-    case bold = "b"
-    case italic = "i"
-    case font = "font"
-    case underline = "u"
-    case strikethrough = "s"
-    case color = "color"
-    case size = "size"
-    case mask = "mask"
-    case ruby = "ruby"
+    case bold
+    case italic
+    case font
+    case underline
+    case strikethrough
+    case color
+    case size
+    case mask
+    case ruby
 
     /// 列表标签
-    case list = "list"
-    case listitem = "*"
+    case list
+    case listitem
 
     // static let unsupported: Set<Self> = [.background, .avatar, .float]
 
@@ -142,6 +142,81 @@ public enum BBTag: String, Sendable, Hashable {
 
     static public func parseByString(_ label: String) -> Self {
         return Self(rawValue: label.lowercased()) ?? .unknown
+    }
+}
+
+extension BBTag: RawRepresentable {
+    public var rawValue: String {
+        switch self {
+        /// 特殊标签（内部虚拟节点）
+        case .unknown: return "unknown"
+        case .root: return "root"
+        case .plain: return "plain"
+        case .paragraphStart: return "paragraphStart"
+        case .paragraphEnd: return "paragraphEnd"
+
+        /// 换行标签
+        case .br: return "br"
+
+        /// 布局标签
+        case .center: return "center"
+        case .left: return "left"
+        case .right: return "right"
+        case .align: return "align"
+
+        /// 块级标签
+        case .quote: return "quote"
+        case .code: return "code"
+        case .url: return "url"
+        case .image: return "img"
+
+        /// 文本样式标签
+        case .bold: return "b"
+        case .italic: return "i"
+        case .font: return "font"
+        case .underline: return "u"
+        case .strikethrough: return "s"
+        case .color: return "color"
+        case .size: return "size"
+        case .mask: return "mask"
+        case .ruby: return "ruby"
+
+        /// 列表标签
+        case .list: return "list"
+        case .listitem: return "*"
+        }
+    }
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "unknown": self = .unknown
+        case "root": self = .root
+        case "plain": self = .plain
+        case "paragraphstart": self = .paragraphStart
+        case "paragraphend": self = .paragraphEnd
+        case "br": self = .br
+        case "center": self = .center
+        case "left": self = .left
+        case "right": self = .right
+        case "align": self = .align
+        case "quote": self = .quote
+        case "code": self = .code
+        case "url": self = .url
+        case "img": self = .image
+        case "b": self = .bold
+        case "i": self = .italic
+        case "font": self = .font
+        case "u": self = .underline
+        case "s": self = .strikethrough
+        case "color": self = .color
+        case "size": self = .size
+        case "mask": self = .mask
+        case "ruby": self = .ruby
+        case "list": self = .list
+        case "*": self = .listitem
+
+        default:
+            return nil
+        }
     }
 }
 
